@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserIcon } from "lucide-react";
+import { LogOut, UserIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ROLE_COOKIE_NAME, normalizeRole } from "@/lib/auth";
+import { ROLE_APPROVAL_COOKIE_NAME, ROLE_COOKIE_NAME, normalizeRole } from "@/lib/auth";
 
 type ProfileResponse = {
   success?: boolean;
@@ -65,6 +65,7 @@ export default function Page() {
   const [status, setStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,6 +123,23 @@ export default function Page() {
       void loadProfile();
     }
   }, [role]);
+
+  async function handleLogout() {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    setIsLoggingOut(true);
+    try {
+      if (baseUrl) {
+        await fetch(`${baseUrl}/api/auth/logout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }).catch(() => {});
+      }
+    } finally {
+      document.cookie = `${ROLE_COOKIE_NAME}=; path=/; max-age=0; samesite=lax`;
+      document.cookie = `${ROLE_APPROVAL_COOKIE_NAME}=; path=/; max-age=0; samesite=lax`;
+      router.push("/login");
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -245,6 +263,15 @@ export default function Page() {
                 </span>
               ) : null}
             </div>
+            <Button
+              variant="outline"
+              className="mt-2 w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              {isLoggingOut ? "Keluar..." : "Logout"}
+            </Button>
           </CardContent>
         </Card>
 

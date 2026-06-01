@@ -85,7 +85,7 @@ export function Navbar({ children, initialRole = null }: { children: React.React
           </div>
 
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-            <Link href="/" className="font-medium text-foreground">
+            <Link href="/" className="hover:text-foreground">
               Jelajahi
             </Link>
             <Link href="/restaurants" className="hover:text-foreground">
