@@ -38,9 +38,7 @@ export default function Page() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "app-key": process.env.NEXT_PUBLIC_API_KEY ?? "",
         },
-        credentials: "include",
       });
 
       const data = (await response.json().catch(() => ({}))) as LogoutResponse;

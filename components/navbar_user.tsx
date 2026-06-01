@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, UserIcon } from "lucide-react";
 import { ROLE_COOKIE_NAME, normalizeRole } from "@/lib/auth";
 
 const publicRoutes = new Set([
@@ -53,10 +53,17 @@ function getInitials(role: string | null) {
     .slice(0, 2);
 }
 
-export function Navbar({ children }: { children: React.ReactNode }) {
+export function Navbar({ children, initialRole = null }: { children: React.ReactNode; initialRole?: string | null }) {
   const pathname = usePathname();
   const showSharedChrome = isPublicRoute(pathname);
-  const [role] = useState<string | null>(() => normalizeRole(readCookieValue(ROLE_COOKIE_NAME)));
+  const [role, setRole] = useState<string | null>(initialRole);
+
+  useEffect(() => {
+    const currentRole = normalizeRole(readCookieValue(ROLE_COOKIE_NAME));
+    if (currentRole !== role) {
+      setRole(currentRole);
+    }
+  }, [pathname, role]);
 
   if (!showSharedChrome) {
     return <>{children}</>;
@@ -93,11 +100,6 @@ export function Navbar({ children }: { children: React.ReactNode }) {
             <Link href="/favorit" className="hover:text-foreground">
               Favorit
             </Link>
-            {role ? (
-              <Link href="/profile" className="hover:text-foreground">
-                Profil
-              </Link>
-            ) : null}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -106,7 +108,7 @@ export function Navbar({ children }: { children: React.ReactNode }) {
                 <Link href="/profile" aria-label="Buka profil">
                   <Avatar className="h-10 w-10 border border-border bg-primary/10 text-primary">
                     <AvatarFallback className="bg-transparent text-sm font-semibold text-primary">
-                      {getInitials(role)}
+                      <UserIcon className="h-5 w-5" />
                     </AvatarFallback>
                   </Avatar>
                 </Link>
@@ -167,7 +169,7 @@ export function Navbar({ children }: { children: React.ReactNode }) {
                       <Link href="/profile" className="flex items-center gap-3 rounded-xl border border-border px-3 py-3">
                         <Avatar className="h-10 w-10 border border-border bg-primary/10 text-primary">
                           <AvatarFallback className="bg-transparent text-sm font-semibold text-primary">
-                            {getInitials(role)}
+                            <UserIcon className="h-5 w-5" />
                           </AvatarFallback>
                         </Avatar>
                         <div className="text-left">

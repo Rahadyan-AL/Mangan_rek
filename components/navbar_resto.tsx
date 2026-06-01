@@ -24,6 +24,9 @@ const adminRestoRoutes = [
 ];
 
 function isActivePath(pathname: string, href: string) {
+  if (href === "/dashboard/admin-resto") {
+    return pathname === href;
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

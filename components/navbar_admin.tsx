@@ -17,11 +17,16 @@ import { MenuIcon } from "lucide-react";
 
 const adminWebRoutes = [
   { href: "/dashboard/admin-web", label: "Overview" },
-  { href: "/dashboard/admin-web/restaurants", label: "Restaurants" },
+  { href: "/dashboard/admin-web/approvals", label: "Approvals" },
+  { href: "/dashboard/admin-web/users", label: "Users" },
+  { href: "/dashboard/admin-web/owners", label: "Owners" },
   { href: "/logout", label: "Logout" },
 ];
 
 function isActivePath(pathname: string, href: string) {
+  if (href === "/dashboard/admin-web") {
+    return pathname === href;
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

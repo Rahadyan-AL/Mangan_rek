@@ -19,12 +19,21 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Normal users cannot access any dashboard routes
+  if (role === "user") {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
   // Prevent role from accessing other dashboards
   if (pathname.startsWith("/dashboard/admin-web") && role !== "admin-web") {
     return NextResponse.redirect(new URL(getDashboardPath(role), req.url));
   }
 
   if (pathname.startsWith("/dashboard/admin-resto") && role !== "admin-resto") {
+    return NextResponse.redirect(new URL(getDashboardPath(role), req.url));
+  }
+  
+  if (pathname.startsWith("/dashboard/kasir") && role !== "kasir") {
     return NextResponse.redirect(new URL(getDashboardPath(role), req.url));
   }
 

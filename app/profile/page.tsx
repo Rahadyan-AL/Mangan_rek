@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { UserIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,16 +23,12 @@ type ProfileResponse = {
   data?: {
     name?: string;
     email?: string;
-    phone?: string;
-    address?: string;
     role?: string;
     status?: string;
   };
   user?: {
     name?: string;
     email?: string;
-    phone?: string;
-    address?: string;
     role?: string;
     status?: string;
   };
@@ -64,14 +61,18 @@ export default function Page() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
   const [role, setRole] = useState<string | null>(() => normalizeRole(readCookieValue(ROLE_COOKIE_NAME)));
   const [status, setStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!role) {
@@ -90,10 +91,11 @@ export default function Page() {
 
       try {
         const response = await fetch(`${baseUrl}/api/auth/me`, {
-          headers: {
-            "app-key": process.env.NEXT_PUBLIC_API_KEY ?? "",
-          },
+          method: "GET",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
         const data = (await response.json().catch(() => ({}))) as ProfileResponse;
@@ -107,8 +109,6 @@ export default function Page() {
 
         setName(profile.name ?? "");
         setEmail(profile.email ?? "");
-        setPhone(profile.phone ?? "");
-        setAddress(profile.address ?? "");
         setRole(normalizeRole(profile.role) ?? role);
         setStatus(profile.status ?? null);
       } catch {
@@ -138,16 +138,13 @@ export default function Page() {
     try {
       const response = await fetch(`${baseUrl}/api/auth/profile`, {
         method: "PUT",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "app-key": process.env.NEXT_PUBLIC_API_KEY ?? "",
         },
-        credentials: "include",
         body: JSON.stringify({
           name,
           email,
-          phone,
-          address,
         }),
       });
 
@@ -160,13 +157,52 @@ export default function Page() {
       const profile = data.data ?? data.user ?? {};
       setName(profile.name ?? name);
       setEmail(profile.email ?? email);
-      setPhone(profile.phone ?? phone);
-      setAddress(profile.address ?? address);
       setMessage(data.message ?? "Profil berhasil diperbarui.");
     } catch {
       setError("Terjadi kesalahan saat menyimpan profil.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handlePasswordSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordMessage(null);
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!baseUrl) {
+      setPasswordError("NEXT_PUBLIC_API_URL belum diisi di .env.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const response = await fetch(`${baseUrl}/api/auth/change-password`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          oldPassword,
+          newPassword,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setPasswordError(data.message ?? "Gagal mengganti password.");
+        return;
+      }
+
+      setPasswordMessage(data.message ?? "Password berhasil diganti.");
+      setOldPassword("");
+      setNewPassword("");
+    } catch {
+      setPasswordError("Terjadi kesalahan saat mengganti password.");
+    } finally {
+      setIsChangingPassword(false);
     }
   }
 
@@ -190,7 +226,7 @@ export default function Page() {
           <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
             <Avatar className="h-24 w-24 border border-slate-200 bg-[#00458B]/10 text-[#00458B]">
               <AvatarFallback className="bg-transparent text-2xl font-bold text-[#00458B]">
-                {getInitials(name || email || "Mangan Rek")}
+                <UserIcon className="h-12 w-12" />
               </AvatarFallback>
             </Avatar>
             <div>
@@ -212,83 +248,119 @@ export default function Page() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Update Profil</CardTitle>
-            <CardDescription>
-              Perbarui data akun Anda melalui endpoint `/api/auth/profile`.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="name">Nama Lengkap</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Nama Anda"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="nama@email.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">No. WhatsApp</Label>
-                <Input
-                  id="phone"
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                  placeholder="08xxxxxxxxxx"
-                />
-              </div>
-
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="address">Alamat</Label>
-                <Input
-                  id="address"
-                  value={address}
-                  onChange={(event) => setAddress(event.target.value)}
-                  placeholder="Alamat lengkap"
-                />
-              </div>
-
-              {error ? (
-                <div className="sm:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {error}
+        <div className="flex flex-col gap-6">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Update Profil</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="name">Nama Lengkap</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Nama Anda"
+                  />
                 </div>
-              ) : null}
 
-              {message ? (
-                <div className="sm:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                  {message}
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="nama@email.com"
+                  />
                 </div>
-              ) : null}
 
-              <div className="sm:col-span-2 flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => router.back()}>
-                  Kembali
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-[#00458B] text-white hover:bg-[#00356b]"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                {error ? (
+                  <div className="sm:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {error}
+                  </div>
+                ) : null}
+
+                {message ? (
+                  <div className="sm:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    {message}
+                  </div>
+                ) : null}
+
+                <div className="sm:col-span-2 flex justify-end gap-3">
+                  <Button type="button" variant="outline" onClick={() => router.back()}>
+                    Kembali
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-[#00458B] text-white hover:bg-[#00356b]"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Ganti Password</CardTitle>
+              <CardDescription>
+                Ganti password lama Anda dengan password baru yang lebih aman.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordSubmit} className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="oldPassword">Password Lama</Label>
+                  <Input
+                    id="oldPassword"
+                    type="password"
+                    value={oldPassword}
+                    onChange={(event) => setOldPassword(event.target.value)}
+                    placeholder="Masukkan password saat ini"
+                    required
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="newPassword">Password Baru</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    placeholder="Masukkan password baru"
+                    required
+                  />
+                </div>
+
+                {passwordError ? (
+                  <div className="sm:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {passwordError}
+                  </div>
+                ) : null}
+
+                {passwordMessage ? (
+                  <div className="sm:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    {passwordMessage}
+                  </div>
+                ) : null}
+
+                <div className="sm:col-span-2 flex justify-end gap-3">
+                  <Button
+                    type="submit"
+                    className="bg-amber-600 text-white hover:bg-amber-700"
+                    disabled={isChangingPassword}
+                  >
+                    {isChangingPassword ? "Memproses..." : "Ganti Password"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </main>
   );

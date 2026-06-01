@@ -78,9 +78,6 @@ export default function Page() {
 
       const response = await fetch(`${baseUrl}/api/auth/register/resto`, {
         method: "POST",
-        headers: {
-          "app-key": process.env.NEXT_PUBLIC_API_KEY ?? "",
-        },
         body: formData,
       });
 

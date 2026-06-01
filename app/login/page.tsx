@@ -23,6 +23,7 @@ import {
   getAuthRedirectPath,
   isAppRole,
   normalizeApprovalStatus,
+  normalizeRole,
 } from "@/lib/auth";
 
 type LoginResponse = {
@@ -60,13 +61,10 @@ export default function Page() {
     document.cookie = `${ROLE_APPROVAL_COOKIE_NAME}=${approvalStatus}; path=/; max-age=2592000; samesite=lax`;
   }
 
-  function resolveRole(data: LoginResponse) {
+  function resolveRole(data: LoginResponse): AppRole {
     const candidate = data.role ?? data.data?.role ?? data.data?.user?.role ?? data.user?.role;
-    if (isAppRole(candidate)) {
-      return candidate;
-    }
-
-    return "user";
+    const normalized = normalizeRole(candidate);
+    return normalized ?? "user";
   }
 
   function resolveApprovalStatus(data: LoginResponse, nextRole: AppRole) {
@@ -107,13 +105,12 @@ export default function Page() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "app-key": process.env.NEXT_PUBLIC_API_KEY ?? "",
         },
-        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
