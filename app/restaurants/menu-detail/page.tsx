@@ -8,7 +8,6 @@ import { ArrowLeft, ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { findPublicMenu, findPublicRestaurant } from "@/lib/public-restaurants";
 
 export default function Page() {
   const router = useRouter();
@@ -16,10 +15,47 @@ export default function Page() {
   const restaurantId = searchParams.get("restaurantId");
   const menuId = searchParams.get("menuId");
 
-  const restaurant = useMemo(() => findPublicRestaurant(restaurantId), [restaurantId]);
-  const menu = useMemo(() => findPublicMenu(restaurantId, menuId), [menuId, restaurantId]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [restaurant, setRestaurant] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [activeMenu, setActiveMenu] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const activeMenu = menu ?? restaurant?.menus[0] ?? null;
+  useEffect(() => {
+    async function fetchData() {
+      if (!restaurantId) return;
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+      try {
+        const [restoRes, menuRes] = await Promise.all([
+          fetch(`${baseUrl}/api/restaurants/${restaurantId}`),
+          fetch(menuId ? `${baseUrl}/api/restaurants/${restaurantId}/menus/${menuId}` : `${baseUrl}/api/restaurants/${restaurantId}/menus`)
+        ]);
+
+        if (restoRes.ok && menuRes.ok) {
+          const restoData = await restoRes.json();
+          const menuData = await menuRes.json();
+          
+          setRestaurant(restoData.data || restoData);
+          
+          if (menuId) {
+             setActiveMenu(menuData.data || menuData);
+          } else {
+             const menusArray = menuData.data || menuData || [];
+             setActiveMenu(menusArray[0] || null);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [restaurantId, menuId]);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Memuat...</div>;
+  }
 
   if (!restaurant || !activeMenu) {
     return (
@@ -58,16 +94,16 @@ export default function Page() {
             <div className="space-y-4 p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-primary">{restaurant.category}</p>
+                  <p className="text-sm font-medium text-primary">{restaurant.category || restaurant.type || "Kuliner"}</p>
                   <h1 className="mt-1 text-3xl font-semibold tracking-tight">{activeMenu.name}</h1>
-                  <p className="mt-2 text-sm text-muted-foreground">{restaurant.name}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{restaurant.name || restaurant.restaurantName}</p>
                 </div>
                 <div className="rounded-2xl bg-primary/10 px-4 py-3 text-right">
                   <div className="text-xs uppercase tracking-[0.2em] text-primary/70">
                     Harga
                   </div>
                   <div className="text-lg font-semibold text-primary">
-                    Rp {activeMenu.price.toLocaleString("id-ID")}
+                    Rp {Number(activeMenu.price || 0).toLocaleString("id-ID")}
                   </div>
                 </div>
               </div>
@@ -85,16 +121,16 @@ export default function Page() {
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
                   <span>Restoran</span>
-                  <span className="font-medium text-foreground">{restaurant.name}</span>
+                  <span className="font-medium text-foreground">{restaurant.name || restaurant.restaurantName}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
                   <span>Kategori</span>
-                  <span className="font-medium text-foreground">{restaurant.category}</span>
+                  <span className="font-medium text-foreground">{restaurant.category || restaurant.type || "-"}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
                   <span>Harga</span>
                   <span className="font-medium text-foreground">
-                    Rp {activeMenu.price.toLocaleString("id-ID")}
+                    Rp {Number(activeMenu.price || 0).toLocaleString("id-ID")}
                   </span>
                 </div>
               </CardContent>

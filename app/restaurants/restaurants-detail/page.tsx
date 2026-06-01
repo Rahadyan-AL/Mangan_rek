@@ -16,10 +16,6 @@ import {
   isFavoriteRestaurant,
   toggleFavoriteRestaurant,
 } from "@/lib/local-favorites";
-import {
-  findPublicRestaurant,
-  publicRestaurants,
-} from "@/lib/public-restaurants";
 
 function readCookieValue(cookieName: string) {
   if (typeof document === "undefined") {
@@ -39,22 +35,41 @@ export default function Page() {
   const restaurantId = searchParams.get("restaurantId");
   const [tick, setTick] = useState(0);
 
-  const restaurant = useMemo(() => {
-    const matchedRestaurant = findPublicRestaurant(restaurantId);
-    if (matchedRestaurant) {
-      return matchedRestaurant;
-    }
-
-    return publicRestaurants[0];
-  }, [restaurantId]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [restaurant, setRestaurant] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const cookieRole = normalizeRole(readCookieValue(ROLE_COOKIE_NAME));
     if (!cookieRole) {
       router.replace("/login");
+      return;
     }
-    // no synchronous setState here; favorites are derived below
-  }, [router, restaurant.id]);
+
+    async function fetchData() {
+      if (!restaurantId) return;
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+      try {
+        const [restoRes, menusRes] = await Promise.all([
+          fetch(`${baseUrl}/api/restaurants/${restaurantId}`),
+          fetch(`${baseUrl}/api/restaurants/${restaurantId}/menus`)
+        ]);
+
+        if (restoRes.ok && menusRes.ok) {
+          const restoData = await restoRes.json();
+          const menusData = await menusRes.json();
+          const resto = restoData.data || restoData;
+          const menus = menusData.data || menusData;
+          setRestaurant({ ...resto, menus });
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [router, restaurantId]);
 
   function handleToggleFavorite() {
     const cookieRole = normalizeRole(readCookieValue(ROLE_COOKIE_NAME));
@@ -77,9 +92,14 @@ export default function Page() {
     setTick((t) => t + 1);
   }
 
-  const isFavorite = isFavoriteRestaurant(restaurant.id);
+  const isFavorite = restaurant ? isFavoriteRestaurant(restaurant.id) : false;
 
-  // no explicit loading state; redirect will happen if not authorized
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Memuat...</div>;
+  }
+  if (!restaurant) {
+    return <div className="min-h-screen flex items-center justify-center">Restoran tidak ditemukan.</div>;
+  }
 
   return (
     <main
@@ -117,9 +137,9 @@ export default function Page() {
               <div className="space-y-4 p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-primary">{restaurant.category}</p>
+                    <p className="text-sm font-medium text-primary">{restaurant.category || restaurant.type || "Kuliner"}</p>
                     <h1 className="mt-1 text-3xl font-semibold tracking-tight md:text-4xl">
-                      {restaurant.name}
+                      {restaurant.name || restaurant.restaurantName}
                     </h1>
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
@@ -128,9 +148,9 @@ export default function Page() {
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <Star size={16} className="text-amber-500" />
-                        {restaurant.rating.toFixed(1)}
+                        {Number(restaurant.rating || 0).toFixed(1)}
                       </span>
-                      <span>{restaurant.distanceKm.toFixed(1)} km</span>
+                      <span>{Number(restaurant.distanceKm || restaurant.distance || 0).toFixed(1)} km</span>
                     </div>
                   </div>
 
@@ -139,13 +159,13 @@ export default function Page() {
                       Promo Aktif
                     </div>
                     <div className="text-lg font-semibold text-primary">
-                      {restaurant.promoLabel}
+                      {restaurant.promoLabel || "Tidak ada promo"}
                     </div>
                   </div>
                 </div>
 
                 <p className="max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-                  {restaurant.description}
+                  {restaurant.description || "Deskripsi restoran belum tersedia."}
                 </p>
 
                 <div className="flex flex-wrap gap-3">
@@ -166,14 +186,15 @@ export default function Page() {
                 <CardTitle className="text-xl font-semibold">Menu Rekomendasi</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {restaurant.menus.map((menu) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {restaurant.menus && restaurant.menus.length > 0 ? restaurant.menus.map((menu: any) => (
                   <Link
                     key={menu.id}
                     href={`/restaurants/menu-detail?restaurantId=${restaurant.id}&menuId=${menu.id}`}
                     className="group overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <div className="relative h-40 w-full">
-                      <Image src={menu.image} alt={menu.name} fill className="object-cover" />
+                      <Image src={menu.image || "/image/makanan/bakso.jpg"} alt={menu.name} fill className="object-cover" />
                     </div>
                     <div className="space-y-2 p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -181,13 +202,15 @@ export default function Page() {
                           {menu.name}
                         </h3>
                         <span className="text-sm font-semibold text-primary">
-                          Rp {menu.price.toLocaleString("id-ID")}
+                          Rp {Number(menu.price).toLocaleString("id-ID")}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">{menu.description}</p>
                     </div>
                   </Link>
-                ))}
+                )) : (
+                  <p className="text-sm text-muted-foreground col-span-3">Belum ada menu.</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -206,12 +229,12 @@ export default function Page() {
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
                   <span>Kategori</span>
-                  <span className="font-medium text-foreground">{restaurant.category}</span>
+                  <span className="font-medium text-foreground">{restaurant.category || restaurant.type || "-"}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
                   <span>Jarak</span>
                   <span className="font-medium text-foreground">
-                    {restaurant.distanceKm.toFixed(1)} km
+                    {Number(restaurant.distanceKm || restaurant.distance || 0).toFixed(1)} km
                   </span>
                 </div>
               </CardContent>

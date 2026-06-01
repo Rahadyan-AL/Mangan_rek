@@ -4,46 +4,26 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const recommendations = [
-  {
-    name: "Bakso President",
-    location: "Jl. Batanghari No.5 · 1.2km",
-    image: "/image/makanan/bakso.jpg",
-    promo: true,
-  },
-  {
-    name: "Rawon Nguling",
-    location: "Jl. Zainul Arifin No.62 · 2.4km",
-    image: "/image/makanan/soto.jpg",
-    promo: true,
-  },
-  {
-    name: "Hot Cwie Mie Malang",
-    location: "Jl. Kawi No.20 · 0.8km",
-    image: "/image/makanan/mie-goreng.jpg",
-    promo: true,
-  },
-  {
-    name: "Sate Gebug",
-    location: "Jl. Basuki Rahmat · 1.5km",
-    image: "/image/makanan/Sate-Ayam.jpg",
-    promo: true,
-  },
-  {
-    name: "Sego Empok Wakoel",
-    location: "Pasar Besar · 3.1km",
-    image: "/image/makanan/nasi-goreng.jpg",
-    promo: true,
-  },
-  {
-    name: "Onde-Onde Agrin",
-    location: "Jl. Tidar · 4.0km",
-    image: "/image/makanan/pecel.jpg",
-    promo: true,
-  },
-];
-
-export default function Home() {
+export default async function Home() {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let recommendations: any[] = [];
+  
+  try {
+    // using sort=terdekat as per postman collection
+    const res = await fetch(`${baseUrl}/api/restaurants?limit=6&lat=-7.9666&lng=112.6326&sort=terdekat`, {
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const result = await res.json();
+      recommendations = result.data?.data || result.data || result.restaurants || result || [];
+      if (!Array.isArray(recommendations)) {
+        recommendations = [];
+      }
+    }
+  } catch (error) {
+    console.error("Fetch restaurants failed:", error);
+  }
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="mx-auto w-full max-w-6xl px-6 py-16 text-center">
@@ -81,32 +61,35 @@ export default function Home() {
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {recommendations.map((item) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {recommendations.length > 0 ? recommendations.map((item: any) => (
             <article
-              key={item.name}
+              key={item.id}
               className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
             >
               <div className="relative h-40 w-full">
                 <Image
-                  src={item.image}
-                  alt={item.name}
+                  src={item.image || item.legalPhoto || "/image/makanan/bakso.jpg"}
+                  alt={item.name || item.restaurantName || "Restoran"}
                   fill
                   className="object-cover"
                 />
               </div>
               <div className="space-y-2 p-4">
                 <div className="flex items-start justify-between">
-                  <h3 className="text-base font-semibold">{item.name}</h3>
-                  {item.promo ? (
+                  <h3 className="text-base font-semibold">{item.name || item.restaurantName}</h3>
+                  {item.promo || item.promoLabel ? (
                     <span className="rounded-full bg-secondary/10 px-2 py-1 text-xs text-secondary">
                       Promo Aktif
                     </span>
                   ) : null}
                 </div>
-                <p className="text-xs text-muted-foreground">{item.location}</p>
+                <p className="text-xs text-muted-foreground">{item.address || item.location}</p>
               </div>
             </article>
-          ))}
+          )) : (
+            <p className="text-sm text-muted-foreground col-span-3 text-center py-10">Belum ada data restoran.</p>
+          )}
         </div>
       </section>
     </main>

@@ -61,6 +61,7 @@ export function Navbar({ children, initialRole = null }: { children: React.React
   useEffect(() => {
     const currentRole = normalizeRole(readCookieValue(ROLE_COOKIE_NAME));
     if (currentRole !== role) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRole(currentRole);
     }
   }, [pathname, role]);
