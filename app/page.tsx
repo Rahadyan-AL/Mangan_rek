@@ -1,65 +1,114 @@
 import Image from "next/image";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+const recommendations = [
+  {
+    name: "Bakso President",
+    location: "Jl. Batanghari No.5 · 1.2km",
+    image: "/image/makanan/bakso.jpg",
+    promo: true,
+  },
+  {
+    name: "Rawon Nguling",
+    location: "Jl. Zainul Arifin No.62 · 2.4km",
+    image: "/image/makanan/soto.jpg",
+    promo: true,
+  },
+  {
+    name: "Hot Cwie Mie Malang",
+    location: "Jl. Kawi No.20 · 0.8km",
+    image: "/image/makanan/mie-goreng.jpg",
+    promo: true,
+  },
+  {
+    name: "Sate Gebug",
+    location: "Jl. Basuki Rahmat · 1.5km",
+    image: "/image/makanan/Sate-Ayam.jpg",
+    promo: true,
+  },
+  {
+    name: "Sego Empok Wakoel",
+    location: "Pasar Besar · 3.1km",
+    image: "/image/makanan/nasi-goreng.jpg",
+    promo: true,
+  },
+  {
+    name: "Onde-Onde Agrin",
+    location: "Jl. Tidar · 4.0km",
+    image: "/image/makanan/pecel.jpg",
+    promo: true,
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-background text-foreground">
+      <section className="mx-auto w-full max-w-6xl px-6 py-16 text-center">
+        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+          Jelajahi Cita Rasa Malang
+        </h1>
+        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
+          Temukan warisan kuliner otentik Malang. Mulai dari bakso, cwimie,
+          rawon dan masih banyak lagi. Jelajahi semua rekomendasi pilihan oleh
+          arek Malang.
+        </p>
+        <div className="mx-auto mt-8 flex w-full max-w-xl items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+          <span className="text-muted-foreground">🔍</span>
+          <Input
+            className="border-none bg-transparent shadow-none focus-visible:ring-0"
+            placeholder="Cari Bakso, Rawon, Cwie Mie..."
+          />
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            Cari
+          </Button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-6 pb-16">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Rekomendasi Kuliner</h2>
+            <p className="text-sm text-muted-foreground">
+              Spot kuliner terpopuler di Malang yang wajib dicoba.
+            </p>
+          </div>
+          <Link href="/restaurants" className="text-sm text-primary hover:underline">
+            Lihat Semua →
+          </Link>
         </div>
-      </main>
-    </div>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {recommendations.map((item) => (
+            <article
+              key={item.name}
+              className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+            >
+              <div className="relative h-40 w-full">
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="space-y-2 p-4">
+                <div className="flex items-start justify-between">
+                  <h3 className="text-base font-semibold">{item.name}</h3>
+                  {item.promo ? (
+                    <span className="rounded-full bg-secondary/10 px-2 py-1 text-xs text-secondary">
+                      Promo Aktif
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">{item.location}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
