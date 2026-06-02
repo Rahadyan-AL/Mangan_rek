@@ -5,14 +5,11 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-
 import "leaflet/dist/leaflet.css";
 import { useEffect } from "react";
 
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
+// Use CDN for Leaflet marker images to fix Next.js 404 errors
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x.src,
-  iconUrl: markerIcon.src,
-  shadowUrl: markerShadow.src,
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 export type MapMarker = {
@@ -26,11 +23,23 @@ function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
     map.setView(center, map.getZoom());
-    // Memicu Leaflet untuk menghitung ulang ukurannya setelah render DOM selesai (mengatasi map terpotong/abu-abu).
+    
+    // Memicu Leaflet untuk menghitung ulang ukurannya setelah render DOM selesai.
     const timer = setTimeout(() => {
       map.invalidateSize();
     }, 250);
-    return () => clearTimeout(timer);
+    
+    // Gunakan ResizeObserver untuk menangani perubahan ukuran kontainer (misal saat transisi)
+    const container = map.getContainer();
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    resizeObserver.observe(container);
+    
+    return () => {
+      clearTimeout(timer);
+      resizeObserver.disconnect();
+    };
   }, [center, map]);
   return null;
 }
@@ -73,7 +82,7 @@ export default function LeafletMap({ markers, routePath = [] }: { markers: MapMa
       zoom={13}
       scrollWheelZoom
       zoomControl={false}
-      className="absolute inset-0 z-0 h-full w-full"
+      style={{ height: '100%', width: '100%' }}
     >
       <CustomMapControls />
       <MapUpdater center={mapCenter} />
