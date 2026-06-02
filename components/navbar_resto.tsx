@@ -19,7 +19,10 @@ const adminRestoRoutes = [
   { href: "/dashboard/admin-resto", label: "Overview" },
   { href: "/dashboard/admin-resto/menu", label: "Menu" },
   { href: "/dashboard/admin-resto/promo", label: "Promo" },
-  { href: "/dashboard/admin-resto/buat_kasir", label: "Buat Kasir" },
+  { href: "/dashboard/admin-resto/vouchers", label: "Voucher" },
+  { href: "/dashboard/admin-resto/manajemen-kasir", label: "Manajemen Kasir" },
+  { href: "/dashboard/admin-resto/report", label: "Report" },
+  { href: "/dashboard/admin-resto/history", label: "History" },
   { href: "/logout", label: "Logout" },
 ];
 

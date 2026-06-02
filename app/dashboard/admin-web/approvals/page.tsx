@@ -50,51 +50,53 @@ export default function Page() {
   }, [fetchApprovals]);
 
   return (
-    <main className="min-h-screen bg-background p-6 text-foreground md:p-10">
-      <Card className="border border-border">
-        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <CardTitle className="text-2xl">Pending Approvals</CardTitle>
-            <CardDescription>
-              Kelola daftar pendaftaran resto yang menunggu verifikasi.
-            </CardDescription>
-          </div>
-          <Link href="/dashboard/admin-web" className="text-sm text-primary hover:underline">
-            Kembali ke overview
-          </Link>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground">Memuat data...</p>
-          ) : error ? (
-            <p className="text-sm text-red-500">{error}</p>
-          ) : approvals.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Tidak ada pendaftaran yang menunggu verifikasi.</p>
-          ) : (
-            approvals.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background px-4 py-3 md:flex-row md:items-center md:justify-between"
-              >
-                <div>
-                  <p className="font-semibold text-foreground">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {item.email}
-                  </p>
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
+      <div className="mx-auto max-w-6xl">
+        <Card className="border border-border">
+          <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <CardTitle className="text-2xl">Pending Approvals</CardTitle>
+              <CardDescription>
+                Kelola daftar pendaftaran resto yang menunggu verifikasi.
+              </CardDescription>
+            </div>
+            <Link href="/dashboard/admin-web" className="text-sm text-primary hover:underline">
+              Kembali ke overview
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Memuat data...</p>
+            ) : error ? (
+              <p className="text-sm text-red-500">{error}</p>
+            ) : approvals.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Tidak ada pendaftaran yang menunggu verifikasi.</p>
+            ) : (
+              approvals.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background px-4 py-3 md:flex-row md:items-center md:justify-between"
+                >
+                  <div>
+                    <p className="font-semibold text-foreground">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.email}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800">
+                      {item.status}
+                    </span>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/dashboard/admin-web/approvals-detail?id=${item.id}`}>Detail</Link>
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800">
-                    {item.status}
-                  </span>
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href={`/dashboard/admin-web/approvals-detail?id=${item.id}`}>Detail</Link>
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

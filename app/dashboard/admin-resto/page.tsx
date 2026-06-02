@@ -15,19 +15,61 @@ import {
 
 export default function Page() {
   const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [activePromosCount, setActivePromosCount] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchMenus = useCallback(async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const res = await fetch(`${baseUrl}/api/restaurants/menus`, {
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const items = data.data || data.menus || data;
-        setMenuItems(Array.isArray(items) ? items : []);
+
+      // Fetch menus
+      try {
+        const menuRes = await fetch(`${baseUrl}/api/restaurants/menus`, {
+          credentials: "include",
+        });
+        if (menuRes.ok) {
+          const data = await menuRes.json();
+          const items = data.data || data.menus || data;
+          setMenuItems(Array.isArray(items) ? items : []);
+        }
+      } catch (err) {
+        console.error("Error fetching menus:", err);
+      }
+
+      // Fetch promos
+      try {
+        const promoRes = await fetch(`${baseUrl}/api/restaurants/promos`, {
+          credentials: "include",
+        });
+        if (promoRes.ok) {
+          const data = await promoRes.json();
+          const promos = data.data || data.promos || data;
+          if (Array.isArray(promos)) {
+            setActivePromosCount(promos.length);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching promos:", err);
+      }
+
+      // Fetch revenue stats (orders and revenue)
+      try {
+        const revenueRes = await fetch(`${baseUrl}/api/restaurants/revenue`, {
+          credentials: "include",
+        });
+        if (revenueRes.ok) {
+          const data = await revenueRes.json();
+          const actualData = data.data || data;
+          const ordersCount = actualData.totalTransactions ?? actualData.transactionsCount ?? actualData.transactions ?? actualData.count ?? 0;
+          const revVal = actualData.totalRevenue ?? actualData.revenue ?? actualData.total ?? 0;
+          setTotalOrders(ordersCount);
+          setTotalRevenue(revVal);
+        }
+      } catch (err) {
+        console.error("Error fetching revenue stats:", err);
       }
     } catch (err) {
       console.error(err);
@@ -37,8 +79,8 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    fetchMenus();
-  }, [fetchMenus]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   async function handleDelete(id: string) {
     if (!confirm("Hapus menu ini?")) return;
@@ -62,7 +104,7 @@ export default function Page() {
   const dynamicStats = [
     {
       label: "Total Orders",
-      value: "245",
+      value: totalOrders.toString(),
       trend: "+8%",
       tone: "bg-primary/10 text-primary",
       icon: ShoppingCart,
@@ -76,14 +118,14 @@ export default function Page() {
     },
     {
       label: "Active Promos",
-      value: "0",
+      value: activePromosCount.toString(),
       trend: "+0%",
       tone: "bg-accent/10 text-accent",
       icon: BadgePercent,
     },
     {
       label: "Total Revenue",
-      value: "Rp 85.400.000",
+      value: `Rp ${Number(totalRevenue).toLocaleString("id-ID")}`,
       trend: "+12%",
       tone: "bg-emerald-10 text-emerald-700",
       icon: ShoppingCart,
@@ -133,7 +175,7 @@ export default function Page() {
                 </CardDescription>
               </div>
               <Button size="sm" asChild>
-                <Link href="/dashboard/admin-resto/menus/new">
+                <Link href="/dashboard/admin-resto/menu/new">
                   <Plus className="mr-2 h-4 w-4" /> Tambah
                 </Link>
               </Button>
@@ -160,7 +202,7 @@ export default function Page() {
                         {item.isAvailable || item.status === 'Available' ? "Available" : "Sold Out"}
                       </span>
                       <Button size="sm" variant="outline" asChild>
-                        <Link href={`/dashboard/admin-resto/menus/${item.id}/edit`}>
+                        <Link href={`/dashboard/admin-resto/menu/${item.id}/edit`}>
                           <Pencil className="h-4 w-4" />
                         </Link>
                       </Button>

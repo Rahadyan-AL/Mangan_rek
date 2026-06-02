@@ -51,7 +51,7 @@ export default function NewMenuPage() {
         throw new Error(data.message || "Gagal menambahkan menu");
       }
       
-      router.push("/dashboard/admin-resto");
+      router.push("/dashboard/admin-resto/menu");
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan jaringan");
     } finally {
@@ -63,7 +63,7 @@ export default function NewMenuPage() {
     <main className="min-h-screen bg-background px-6 py-10 text-foreground md:px-10 md:py-10">
       <div className="mx-auto max-w-2xl">
         <Button variant="ghost" asChild className="mb-6 px-0 hover:bg-transparent">
-          <Link href="/dashboard/admin-resto">
+          <Link href="/dashboard/admin-resto/menu">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali
           </Link>

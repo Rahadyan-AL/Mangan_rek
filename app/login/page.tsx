@@ -99,7 +99,7 @@ export default function Page() {
 
     const baseUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!baseUrl) {
-      setError("NEXT_PUBLIC_API_URL belum diisi di .env.");
+      setError("");
       return;
     }
 

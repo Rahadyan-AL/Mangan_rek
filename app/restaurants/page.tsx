@@ -18,68 +18,12 @@ type RestaurantItem = {
   category?: string;
 };
 
-const fallbackRestaurants: RestaurantItem[] = [
-  {
-    name: "Bakso President",
-    address: "Jl. Batanghari No.5",
-    distanceKm: 1.2,
-    isPromoActive: true,
-    discountDisplay: 15,
-    image: "/image/makanan/bakso.jpg",
-    category: "Bakso",
-  },
-  {
-    name: "Rawon Nguling",
-    address: "Jl. Zainul Arifin No.62",
-    distanceKm: 2.4,
-    isPromoActive: true,
-    discountDisplay: 10,
-    image: "/image/makanan/soto.jpg",
-    category: "Rawon",
-  },
-  {
-    name: "Hot Cwie Mie Malang",
-    address: "Jl. Kawi No.20",
-    distanceKm: 0.8,
-    isPromoActive: true,
-    discountDisplay: 20,
-    image: "/image/makanan/mie-goreng.jpg",
-    category: "Cwie Mie",
-  },
-  {
-    name: "Sate Gebug",
-    address: "Jl. Basuki Rahmat",
-    distanceKm: 1.5,
-    isPromoActive: true,
-    discountDisplay: 12,
-    image: "/image/makanan/Sate-Ayam.jpg",
-    category: "Sate",
-  },
-  {
-    name: "Sego Empok Wakoel",
-    address: "Pasar Besar",
-    distanceKm: 3.1,
-    isPromoActive: true,
-    discountDisplay: 8,
-    image: "/image/makanan/nasi-goreng.jpg",
-    category: "Nasi",
-  },
-  {
-    name: "Onde-Onde Agrin",
-    address: "Jl. Tidar",
-    distanceKm: 4,
-    isPromoActive: true,
-    discountDisplay: 5,
-    image: "/image/makanan/pecel.jpg",
-    category: "Jajanan",
-  },
-];
 
 async function getRestaurants(page: number, search: string): Promise<{ data: RestaurantItem[], pagination: { page: number, totalPages: number, total: number, limit: number } }> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
   const defaultPagination = { page: 1, totalPages: 1, total: 0, limit: 10 };
 
-  if (!baseUrl) return { data: fallbackRestaurants, pagination: defaultPagination };
+  if (!baseUrl) return { data: [], pagination: defaultPagination };
 
   try {
     const response = await fetch(
@@ -87,7 +31,7 @@ async function getRestaurants(page: number, search: string): Promise<{ data: Res
       { cache: "no-store" }
     );
 
-    if (!response.ok) return { data: fallbackRestaurants, pagination: defaultPagination };
+    if (!response.ok) return { data: [], pagination: defaultPagination };
 
     const data = await response.json().catch(() => null);
     const restaurants =
@@ -96,10 +40,10 @@ async function getRestaurants(page: number, search: string): Promise<{ data: Res
     const pagination = data?.data?.pagination ?? defaultPagination;
 
     if (!Array.isArray(restaurants) || restaurants.length === 0) {
-      return fallbackRestaurants;
+      return { data: [], pagination: defaultPagination };
     }
 
-    return restaurants.map((item: Record<string, unknown>) => ({
+    const parsedRestaurants = restaurants.map((item: Record<string, unknown>) => ({
       id: typeof item.id === "string" ? item.id : undefined,
       name:
         typeof item.name === "string"
@@ -140,9 +84,10 @@ async function getRestaurants(page: number, search: string): Promise<{ data: Res
             ? item.type
             : "Kuliner",
     }));
+
     return { data: parsedRestaurants, pagination };
   } catch {
-    return { data: fallbackRestaurants, pagination: { page: 1, totalPages: 1, total: 0, limit: 10 } };
+    return { data: [], pagination: { page: 1, totalPages: 1, total: 0, limit: 10 } };
   }
 }
 
