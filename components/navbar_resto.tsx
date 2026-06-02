@@ -21,8 +21,8 @@ const adminRestoRoutes = [
   { href: "/dashboard/admin-resto/promo", label: "Promo" },
   { href: "/dashboard/admin-resto/vouchers", label: "Voucher" },
   { href: "/dashboard/admin-resto/manajemen-kasir", label: "Manajemen Kasir" },
-  { href: "/dashboard/admin-resto/report", label: "Report" },
-  { href: "/dashboard/admin-resto/history", label: "History" },
+  { href: "/dashboard/admin-resto/report", label: "Laporan Penjualan" },
+  { href: "/dashboard/admin-resto/history", label: "Riwayat Transaksi" },
   { href: "/logout", label: "Logout" },
 ];
 

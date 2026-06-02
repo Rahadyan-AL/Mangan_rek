@@ -25,6 +25,10 @@ const publicRoutes = new Set([
   "/favorit",
   "/promo",
   "/profile",
+  "/about",
+  "/contact",
+  "/terms_of_service",
+  "/privacy_policy",
 ]);
 
 function isPublicRoute(pathname: string) {
@@ -212,11 +216,10 @@ export function Navbar({ children, initialRole = null }: { children: React.React
             <span>© 2026 Mangan Rek! Malang Culinary Heritage.</span>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <Link href="#">About Us</Link>
-            <Link href="#">Contact</Link>
-            <Link href="#">Terms of Service</Link>
-            <Link href="#">Privacy Policy</Link>
-            <Link href="#">Local Guides</Link>
+            <Link href="/about">About Us</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href="/terms_of_service">Terms of Service</Link>
+            <Link href="/privacy_policy">Privacy Policy</Link>
           </div>
         </div>
       </footer>
