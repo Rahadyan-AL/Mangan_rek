@@ -20,13 +20,13 @@ export default function TermsOfServicePage() {
                         <li><strong>Pengguna (User):</strong> Individu/wisatawan yang menggunakan platform untuk mencari restoran, membuat rute perjalanan (itinerary), menyimpan favorit, dan membeli voucher.</li>
                         <li><strong>Admin Resto (Owner):</strong> Pemilik usaha kuliner yang mendaftarkan entitas usahanya, mengelola menu, mengatur promo (Happy Hour), membuat voucher, dan mengelola staf kasir.</li>
                         <li><strong>Kasir:</strong> Staf restoran yang menggunakan sistem antarmuka POS untuk mencatat pesanan (dine-in/take-away) dan memvalidasi voucher pelanggan.</li>
-                        <li><strong>Super Admin:</strong> Pihak pengelola Mangan Rek! yang bertugas melakukan moderasi platform, persetujuan legalitas restoran, dan penegakan aturan.</li>
+                        <li><strong>Super Admin:</strong> Pihak pengelola Mangan Rek! yang bertugas melakukan moderasi platform, persetujuan registrasi restoran, dan penegakan aturan.</li>
                     </ul>
 
                     <h3 className="text-lg font-semibold text-slate-900 mt-6">2. Pendaftaran Akun dan Keamanan</h3>
                     <ul className="list-disc pl-5 space-y-2">
                         <li>Anda setuju untuk memberikan informasi yang akurat, lengkap, dan mutakhir saat melakukan registrasi.</li>
-                        <li>Bagi Admin Resto, Anda wajib melampirkan dokumen legalitas yang sah. Super Admin berhak menyetujui (Approve) atau menolak (Reject) pendaftaran Anda. Sebelum disetujui, akun Anda akan berstatus Pending dan tidak dapat mengakses dashboard.</li>
+                        <li>Bagi Admin Resto, Anda wajib melampirkan foto restoran yang sah. Super Admin berhak menyetujui (Approve) atau menolak (Reject) pendaftaran Anda. Sebelum disetujui, akun Anda akan berstatus Pending dan tidak dapat mengakses dashboard.</li>
                         <li>Anda bertanggung jawab penuh atas kerahasiaan kata sandi akun Anda dan atas semua aktivitas yang terjadi di bawah akun Anda.</li>
                     </ul>
 
@@ -53,7 +53,7 @@ export default function TermsOfServicePage() {
                     <p>Pengguna dalam peran apa pun dilarang keras untuk:</p>
                     <ul className="list-disc pl-5 space-y-2">
                         <li>Merekayasa balik (reverse engineering), meretas, atau menyusup ke dalam server, API, atau basis data Mangan Rek!.</li>
-                        <li>Mengunggah dokumen legalitas palsu, gambar pornografi, atau konten yang melanggar hukum dalam bentuk apa pun.</li>
+                        <li>Mengunggah foto restoran palsu, gambar pornografi, atau konten yang melanggar hukum dalam bentuk apa pun.</li>
                         <li>Melakukan eksploitasi sistem diskon, voucher, atau pembayaran (fraud/scam).</li>
                     </ul>
                     <p>Super Admin memiliki kewenangan penuh untuk menangguhkan (Ban) atau menghapus (Delete) akun secara permanen jika terbukti melakukan pelanggaran.</p>
