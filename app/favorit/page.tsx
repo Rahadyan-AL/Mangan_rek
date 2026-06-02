@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,21 @@ import {
 } from "@/lib/local-favorites";
 
 export default function Page() {
-  const [favorites, setFavorites] = useState<FavoriteRestaurant[]>(() => readFavoriteRestaurants());
+  const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    setFavorites(readFavoriteRestaurants());
+  }, []);
 
   function handleRemoveFavorite(restaurantId: string) {
     const nextFavorites = removeFavoriteRestaurant(restaurantId);
     setFavorites(nextFavorites);
+  }
+
+  if (!isMounted) {
+    return <main className="min-h-screen bg-background" />;
   }
 
   return (
@@ -28,12 +38,12 @@ export default function Page() {
           Favorit
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Simpan restoran yang paling kamu suka agar mudah dibuka kembali dari daftar favorit.
+          Simpan restoran atau menu yang paling kamu suka agar mudah dibuka kembali dari daftar favorit.
         </p>
       </div>
 
         <Button asChild className="w-fit bg-[#00458B] text-white hover:bg-[#00356b]">
-          <Link href="/restaurants">Cari Restoran</Link>
+          <Link href="/restaurants">Jelajahi</Link>
         </Button>
       </div>
 
@@ -67,7 +77,11 @@ export default function Page() {
                 </div>
                 <p className="line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={`/restaurants/restaurants-detail?restaurantId=${item.id}`}>
+                  <Link href={
+                    item.type === "MENU"
+                      ? `/restaurants/menu-detail?restaurantId=${item.restaurantId}&menuId=${item.id}`
+                      : `/restaurants/restaurants-detail?restaurantId=${item.id}`
+                  }>
                     Buka Detail
                   </Link>
                 </Button>
@@ -80,12 +94,12 @@ export default function Page() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Heart className="fill-current" />
           </div>
-          <h2 className="mt-5 text-xl font-semibold">Belum ada restoran favorit</h2>
+          <h2 className="mt-5 text-xl font-semibold">Belum ada favorit</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Simpan restoran dari halaman detail untuk menampilkannya di sini.
+            Simpan restoran atau menu dari halaman detail untuk menampilkannya di sini.
           </p>
           <Button asChild className="mt-6 bg-[#00458B] text-white hover:bg-[#00356b]">
-            <Link href="/restaurants">Cari Restoran</Link>
+            <Link href="/restaurants">Jelajahi</Link>
           </Button>
         </div>
       )}

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 
 import { Navbar } from "@/components/navbar_user";
+import { Toaster } from "sonner";
 import { ROLE_COOKIE_NAME, normalizeRole } from "@/lib/auth";
 
 const poppins = Poppins({
@@ -30,6 +31,7 @@ export default async function RootLayout({
     <html lang="en" className={`${poppins.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Navbar initialRole={role}>{children}</Navbar>
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

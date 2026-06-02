@@ -7,6 +7,8 @@ export type FavoriteRestaurant = {
   description: string;
   distanceKm?: number;
   rating?: number;
+  type?: "RESTAURANT" | "MENU";
+  restaurantId?: string;
 };
 
 const FAVORITES_STORAGE_KEY = "manganrek-favorites";
