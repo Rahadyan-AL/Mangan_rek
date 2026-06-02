@@ -10,10 +10,8 @@ type Message = {
     id: string;
     name: string;
     email: string;
-    subject: string;
     message: string;
-    date: string;
-    read: boolean;
+    createdAt: string;
 };
 
 export default function MessagesPage() {
@@ -21,24 +19,52 @@ export default function MessagesPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Load messages from localStorage
-        const loadedMessages = JSON.parse(localStorage.getItem("adminMessages") || "[]");
-        setMessages(loadedMessages);
-        setIsLoading(false);
+        fetchMessages();
     }, []);
 
-    const toggleReadStatus = (id: string) => {
-        const updatedMessages = messages.map(msg => 
-            msg.id === id ? { ...msg, read: !msg.read } : msg
-        );
-        setMessages(updatedMessages);
-        localStorage.setItem("adminMessages", JSON.stringify(updatedMessages));
+    const fetchMessages = async () => {
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+            // Get token from cookie (assuming it's stored in 'mangan_rek_session')
+            const tokenMatch = document.cookie.split("; ").find(c => c.startsWith("mangan_rek_session="));
+            const token = tokenMatch ? decodeURIComponent(tokenMatch.split("=")[1]) : "";
+
+            const response = await fetch(`${baseUrl}/api/contact`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            const result = await response.json();
+            if (result.success) {
+                setMessages(result.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch messages:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const deleteMessage = (id: string) => {
-        const updatedMessages = messages.filter(msg => msg.id !== id);
-        setMessages(updatedMessages);
-        localStorage.setItem("adminMessages", JSON.stringify(updatedMessages));
+    const deleteMessage = async (id: string) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus pesan ini?")) return;
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+            const tokenMatch = document.cookie.split("; ").find(c => c.startsWith("mangan_rek_session="));
+            const token = tokenMatch ? decodeURIComponent(tokenMatch.split("=")[1]) : "";
+
+            const response = await fetch(`${baseUrl}/api/contact/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            const result = await response.json();
+            if (result.success) {
+                setMessages(messages.filter(msg => msg.id !== id));
+            }
+        } catch (error) {
+            console.error("Failed to delete message:", error);
+        }
     };
 
     return (
@@ -70,7 +96,6 @@ export default function MessagesPage() {
                                         <TableRow>
                                             <TableHead className="w-[100px]">Status</TableHead>
                                             <TableHead>Pengirim</TableHead>
-                                            <TableHead>Subjek</TableHead>
                                             <TableHead className="min-w-[300px]">Pesan</TableHead>
                                             <TableHead>Waktu</TableHead>
                                             <TableHead className="text-right">Aksi</TableHead>
@@ -78,25 +103,17 @@ export default function MessagesPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {messages.map((msg) => (
-                                            <TableRow key={msg.id} className={msg.read ? "opacity-75 bg-muted/50" : "font-medium"}>
+                                            <TableRow key={msg.id} className="font-medium">
                                                 <TableCell>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon"
-                                                        onClick={() => toggleReadStatus(msg.id)}
-                                                        title={msg.read ? "Tandai belum dibaca" : "Tandai sudah dibaca"}
-                                                    >
-                                                        {msg.read ? <MailOpen className="h-4 w-4 text-muted-foreground" /> : <Mail className="h-4 w-4 text-primary" />}
-                                                    </Button>
+                                                    <Mail className="h-4 w-4 text-primary" />
                                                 </TableCell>
                                                 <TableCell>
                                                     <div>{msg.name}</div>
                                                     <div className="text-xs text-muted-foreground font-normal">{msg.email}</div>
                                                 </TableCell>
-                                                <TableCell>{msg.subject}</TableCell>
                                                 <TableCell className="text-sm whitespace-pre-wrap">{msg.message}</TableCell>
                                                 <TableCell className="text-xs text-muted-foreground">
-                                                    {new Date(msg.date).toLocaleDateString('id-ID', { 
+                                                    {new Date(msg.createdAt).toLocaleDateString('id-ID', { 
                                                         day: 'numeric', month: 'short', year: 'numeric',
                                                         hour: '2-digit', minute: '2-digit'
                                                     })}

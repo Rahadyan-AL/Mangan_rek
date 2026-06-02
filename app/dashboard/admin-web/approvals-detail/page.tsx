@@ -139,7 +139,7 @@ function DetailContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
-            <DetailField label="Nama Lengkap" value={restaurant.name} />
+            <DetailField label="Nama Pemilik" value={restaurant.name} />
             <DetailField label="Email" value={restaurant.email} />
             <DetailField label="Status Akun" value={restaurant.status} />
             <DetailField label="Role" value={restaurant.role} />
@@ -150,6 +150,40 @@ function DetailContent() {
             />
           </CardContent>
         </Card>
+
+        {restaurant.restaurant && (
+          <Card className="border border-border lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Data Restoran & Legalitas</CardTitle>
+              <CardDescription>
+                Informasi restoran dan foto dokumen legalitas yang diunggah.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-4">
+                <DetailField label="Nama Restoran" value={restaurant.restaurant.name} />
+                <DetailField label="Alamat" value={restaurant.restaurant.address} />
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Foto Legalitas</p>
+                {restaurant.restaurant.legalPhoto ? (
+                  <div className="relative h-64 w-full overflow-hidden rounded-xl border border-border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={restaurant.restaurant.legalPhoto} 
+                      alt="Legalitas Restoran" 
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-64 items-center justify-center rounded-xl border border-border bg-muted/50">
+                    <p className="text-sm text-muted-foreground">Tidak ada foto legalitas</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="border border-border">
           <CardHeader>

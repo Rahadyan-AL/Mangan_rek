@@ -77,11 +77,28 @@ export default function Page() {
                   key={item.id}
                   className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background px-4 py-3 md:flex-row md:items-center md:justify-between"
                 >
-                  <div>
-                    <p className="font-semibold text-foreground">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.email}
-                    </p>
+                  <div className="flex items-center gap-4">
+                    {item.restaurant?.legalPhoto ? (
+                      <div className="h-16 w-24 shrink-0 overflow-hidden rounded-md border border-border">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={item.restaurant.legalPhoto} 
+                          alt="Foto Legalitas" 
+                          className="h-full w-full object-cover hover:scale-110 transition-transform cursor-pointer"
+                          onClick={() => window.open(item.restaurant.legalPhoto, '_blank')}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-md border border-border bg-muted/50 text-[10px] text-muted-foreground">
+                        Tanpa Foto
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-foreground">{item.restaurant?.name || item.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.name} • {item.email}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800">

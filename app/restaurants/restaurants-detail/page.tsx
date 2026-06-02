@@ -116,7 +116,39 @@ export default function Page() {
     if (restaurantId) {
       setIsFavorite(isFavoriteRestaurant(restaurantId));
     }
+
+    // Get current location for distance
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCustomDistance(position.coords);
+        },
+        (error) => {
+          console.warn("Location permission denied or unavailable", error);
+        }
+      );
+    }
   }, [router, restaurantId]);
+
+  const [customDistance, setCustomDistance] = useState<{latitude: number, longitude: number} | null>(null);
+
+  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c; // Distance in km
+  }
+
+  const displayDistance = restaurant?.distanceKm 
+    || restaurant?.distance 
+    || (customDistance && restaurant?.latitude && restaurant?.longitude 
+        ? calculateDistance(customDistance.latitude, customDistance.longitude, restaurant.latitude, restaurant.longitude) 
+        : null);
 
   async function handleBuyVoucher(voucherId: string) {
     setBuyingId(voucherId);
@@ -233,10 +265,12 @@ export default function Page() {
           <div className="p-6 space-y-5">
             {/* Nama & kategori */}
             <div>
-              <div className="flex items-center gap-1.5 text-sm font-medium text-primary mb-1">
-                <Store className="h-4 w-4" />
-                <span>{restaurant.category || restaurant.type || "Kuliner"}</span>
-              </div>
+              {(restaurant.category || restaurant.type) && (
+                <div className="flex items-center gap-1.5 text-sm font-medium text-primary mb-1">
+                  <Store className="h-4 w-4" />
+                  <span>{restaurant.category || restaurant.type}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -269,9 +303,9 @@ export default function Page() {
                   {Number(restaurant.rating || 0).toFixed(1)}
                 </span>
               )}
-              {restaurant.distanceKm != null && (
+              {displayDistance != null && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1">
-                  {Number(restaurant.distanceKm || restaurant.distance || 0).toFixed(1)} km
+                  {Number(displayDistance).toFixed(1)} km
                 </span>
               )}
             </div>
@@ -293,7 +327,7 @@ export default function Page() {
               <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-2.5 gap-6 hover:bg-muted transition-colors">
                 <span className="text-muted-foreground">Jarak</span>
                 <span className="font-medium text-foreground">
-                  {restaurant.distanceKm != null ? `${Number(restaurant.distanceKm || restaurant.distance || 0).toFixed(1)} km` : "-"}
+                  {displayDistance != null ? `${Number(displayDistance).toFixed(1)} km` : "-"}
                 </span>
               </div>
               {restaurant.promoLabel && (
@@ -551,62 +585,53 @@ export default function Page() {
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Kategori */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Kategori Restoran</h4>
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                    {restaurant.category || restaurant.type || "Makanan & Minuman"}
-                  </span>
-                  <span className="rounded-full bg-muted/60 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                    Menu Lengkap
-                  </span>
+              {(restaurant.category || restaurant.type) && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Kategori Restoran</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                      {restaurant.category || restaurant.type}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Jam Buka */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Jam Operasional</h4>
-                <div className="rounded-2xl border border-border/40 bg-muted/20 p-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium text-muted-foreground">Senin - Jumat</span>
-                    <span className="font-bold text-foreground">09:00 - 22:00 WIB</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium text-muted-foreground">Sabtu - Minggu</span>
-                    <span className="font-bold text-foreground">08:00 - 23:00 WIB</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium pt-1">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Buka Sekarang</span>
+              {restaurant.openingHours && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Jam Operasional</h4>
+                  <div className="rounded-2xl border border-border/40 bg-muted/20 p-4 space-y-2">
+                    <div className="flex justify-between text-sm whitespace-pre-wrap">
+                      <span className="font-bold text-foreground">{restaurant.openingHours}</span>
+                    </div>
+                    {restaurant.isOpen !== undefined && (
+                      <div className={`flex items-center gap-1.5 text-xs font-medium pt-1 ${restaurant.isOpen ? 'text-emerald-600' : 'text-red-600'}`}>
+                        <span className={`h-2 w-2 rounded-full ${restaurant.isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                        <span>{restaurant.isOpen ? 'Buka Sekarang' : 'Tutup Sementara'}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Cabang */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Daftar Cabang</h4>
-                <div className="space-y-3">
-                  <div className="rounded-2xl border border-border/40 bg-card p-4 space-y-1">
-                    <p className="text-sm font-bold text-foreground">Cabang Utama (Ijen)</p>
-                    <p className="text-xs text-muted-foreground">{restaurant.address || "Jl. Ijen No. 10, Kota Malang"}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/50 p-4 space-y-1 opacity-70">
-                    <p className="text-sm font-bold text-foreground">Cabang Soekarno Hatta</p>
-                    <p className="text-xs text-muted-foreground">Jl. Soekarno Hatta No. 45, Kota Malang</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/50 p-4 space-y-1 opacity-70">
-                    <p className="text-sm font-bold text-foreground">Cabang Batu</p>
-                    <p className="text-xs text-muted-foreground">Jl. Raya Batu No. 12, Kota Batu</p>
+              {restaurant.branches && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Daftar Cabang</h4>
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-border/40 bg-card p-4 space-y-1">
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">{restaurant.branches}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Maps Mockup */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Lokasi Google Maps</h4>
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((restaurant.name || restaurant.restaurantName) + " " + (restaurant.address || ""))}`}
+                    href={restaurant.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((restaurant.name || restaurant.restaurantName) + " " + (restaurant.address || ""))}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-xs text-primary font-bold hover:underline"

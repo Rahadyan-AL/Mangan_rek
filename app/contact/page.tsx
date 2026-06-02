@@ -16,26 +16,36 @@ export default function ContactPage() {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulasi pengiriman data (delay 1 detik) lalu simpan ke localStorage
-        setTimeout(() => {
-            const newMessage = {
-                id: Date.now().toString(),
-                ...formData,
-                date: new Date().toISOString(),
-                read: false,
-            };
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+            const response = await fetch(`${baseUrl}/api/contact`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    message: `Subjek: ${formData.subject}\n\n${formData.message}`,
+                }),
+            });
 
-            const existingMessages = JSON.parse(localStorage.getItem("adminMessages") || "[]");
-            localStorage.setItem("adminMessages", JSON.stringify([newMessage, ...existingMessages]));
-
+            if (response.ok) {
+                setSuccessMessage("Pesan Anda berhasil dikirim! Kami akan segera menghubungi Anda.");
+                setFormData({ name: "", email: "", subject: "", message: "" });
+            } else {
+                throw new Error("Gagal mengirim pesan");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.");
+        } finally {
             setIsLoading(false);
-            setSuccessMessage("Pesan Anda berhasil dikirim! Kami akan segera menghubungi Anda.");
-            setFormData({ name: "", email: "", subject: "", message: "" });
-        }, 1000);
+        }
     };
 
     return (
