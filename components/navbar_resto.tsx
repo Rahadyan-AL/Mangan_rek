@@ -42,7 +42,7 @@ export function NavbarResto({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href="/dashboard/admin-resto" className="flex items-center gap-3">
             <Image
-              src="/image/Mangan_Rek_logo_Deep_Blue_202605302133.jpeg"
+              src="/image/Mangan_Rek_logo-Photoroom.png"
               alt="Mangan Rek Logo"
               width={150}
               height={42}

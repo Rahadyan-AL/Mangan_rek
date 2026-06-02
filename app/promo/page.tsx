@@ -63,7 +63,7 @@ export default function Page() {
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm lg:min-w-72">
             <div className="flex items-center gap-3">
               <Image
-                src="/image/Mangan_Rek_logo_Deep_Blue_202605302133.jpeg"
+                src="/image/Mangan_Rek_logo-Photoroom.png"
                 alt="Mangan Rek Logo"
                 width={120}
                 height={34}

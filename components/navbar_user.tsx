@@ -80,7 +80,7 @@ export function Navbar({ children, initialRole = null }: { children: React.React
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:py-1">
           <div className="flex items-center gap-3">
             <Image
-              src="/image/Mangan_Rek_logo_Deep_Blue_202605302133.jpeg"
+              src="/image/Mangan_Rek_logo-Photoroom.png"
               alt="Mangan Rek Logo"
               width={160}
               height={44}
@@ -90,19 +90,19 @@ export function Navbar({ children, initialRole = null }: { children: React.React
           </div>
 
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-            <Link href="/" className={pathname === "/" ? "text-primary font-semibold" : "hover:text-foreground"}>
+            <Link href="/" className={pathname === "/" ? "text-foreground font-semibold" : "hover:text-foreground"}>
               Jelajahi
             </Link>
-            <Link href="/restaurants" className={pathname.startsWith("/restaurants") ? "text-primary font-semibold" : "hover:text-foreground"}>
+            <Link href="/restaurants" className={pathname.startsWith("/restaurants") ? "text-foreground font-semibold" : "hover:text-foreground"}>
               Restoran
             </Link>
-            <Link href="/rencana-perjalanan" className={pathname.startsWith("/rencana-perjalanan") ? "text-primary font-semibold" : "hover:text-foreground"}>
+            <Link href="/rencana-perjalanan" className={pathname.startsWith("/rencana-perjalanan") ? "text-foreground font-semibold" : "hover:text-foreground"}>
               Rencana perjalanan
             </Link>
-            <Link href="/promo" className={pathname.startsWith("/promo") ? "text-primary font-semibold" : "hover:text-foreground"}>
+            <Link href="/promo" className={pathname.startsWith("/promo") ? "text-foreground font-semibold" : "hover:text-foreground"}>
               Promo
             </Link>
-            <Link href="/favorit" className={pathname.startsWith("/favorit") ? "text-primary font-semibold" : "hover:text-foreground"}>
+            <Link href="/favorit" className={pathname.startsWith("/favorit") ? "text-foreground font-semibold" : "hover:text-foreground"}>
               Favorit
             </Link>
           </nav>
@@ -207,7 +207,7 @@ export function Navbar({ children, initialRole = null }: { children: React.React
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-6 py-4 text-xs text-muted-foreground md:flex-row">
           <div className="flex items-center gap-3">
             <Image
-              src="/image/Mangan_Rek_logo_Deep_Blue_202605302133.jpeg"
+              src="/image/Mangan_Rek_logo-Photoroom.png"
               alt="Mangan Rek Logo"
               width={130}
               height={36}
