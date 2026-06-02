@@ -78,16 +78,17 @@ export function Navbar({ children, initialRole = null }: { children: React.React
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border/80 bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:py-1">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <Image
               src="/image/Mangan_Rek_logo-Photoroom.png"
               alt="Mangan Rek Logo"
               width={160}
               height={44}
               className="h-12 w-auto sm:h-14 md:h-16"
+              draggable={false}
               priority
             />
-          </div>
+          </Link>
 
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <Link href="/" className={pathname === "/" ? "text-foreground font-semibold" : "hover:text-foreground"}>
