@@ -20,6 +20,7 @@ const adminWebRoutes = [
   { href: "/dashboard/admin-web/approvals", label: "Approvals" },
   { href: "/dashboard/admin-web/users", label: "Users" },
   { href: "/dashboard/admin-web/owners", label: "Owners" },
+  { href: "/dashboard/admin-web/messages", label: "Pesan Masuk" },
   { href: "/logout", label: "Logout" },
 ];
 
@@ -39,7 +40,7 @@ export function NavbarAdmin({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href="/dashboard/admin-web" className="flex items-center gap-3">
             <Image
-              src="/image/Mangan_Rek_logo_Deep_Blue_202605302133.jpeg"
+              src="/image/Mangan_Rek_logo-Photoroom.png"
               alt="Mangan Rek Logo"
               width={150}
               height={42}
