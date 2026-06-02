@@ -146,11 +146,11 @@ export default function Page() {
     >
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-2">
+        <div className="flex flex-col items-center">
           <img
             src="/image/Mangan_Rek_logo-Photoroom.png"
             alt="Mangan Rek Logo"
-            className="h-35 w-auto object-contain "
+            className="h-40 w-auto object-contain "
           />
         </div>
 

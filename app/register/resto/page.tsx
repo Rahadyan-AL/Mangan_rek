@@ -199,7 +199,7 @@ export default function Page() {
               </div>
 
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="legalPhoto">Foto Legalitas</Label>
+                <Label htmlFor="legalPhoto">Foto restoran</Label>
                 <Input
                   id="legalPhoto"
                   type="file"
@@ -207,7 +207,7 @@ export default function Page() {
                   onChange={(e) => setLegalPhoto(e.target.files?.[0] ?? null)}
                 />
                 <p className="text-xs text-slate-500">
-                  Upload foto izin usaha atau dokumen PDF legalitas restoran.
+                  Upload foto restoran Anda.
                 </p>
               </div>
 
