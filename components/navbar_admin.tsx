@@ -45,6 +45,7 @@ export function NavbarAdmin({ children }: { children: React.ReactNode }) {
               width={150}
               height={42}
               className="h-11 w-auto"
+              draggable={false}
               priority
             />
             <div className="hidden sm:block">
