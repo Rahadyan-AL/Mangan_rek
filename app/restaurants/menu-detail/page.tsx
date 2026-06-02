@@ -127,9 +127,11 @@ export default function Page() {
             <div className="space-y-4 p-6">
               <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-1.5 text-sm font-medium text-primary">
+                  <div className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline cursor-pointer">
                     <Store className="h-4 w-4" />
-                    <span>{restaurant.name || restaurant.restaurantName}</span>
+                    <Link href={`/restaurants/restaurants-detail?restaurantId=${restaurant.id}`}>
+                      <span>{restaurant.name || restaurant.restaurantName}</span>
+                    </Link>
                   </div>
                   <div className="flex items-center justify-between gap-3 w-full">
                     <div className="flex items-center gap-3 flex-wrap">
@@ -195,7 +197,9 @@ export default function Page() {
               <CardContent className="space-y-3 text-sm text-muted-foreground pt-5">
                 <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
                   <span>Restoran</span>
-                  <span className="font-medium text-foreground">{restaurant.name || restaurant.restaurantName}</span>
+                  <Link href={`/restaurants/restaurants-detail?restaurantId=${restaurant.id}`} className="font-medium text-foreground hover:text-primary hover:underline">
+                    {restaurant.name || restaurant.restaurantName}
+                  </Link>
                 </div>
                 <div className="flex items-center justify-between gap-4 rounded-xl bg-muted/50 px-4 py-3 hover:bg-muted transition-colors">
                   <span className="shrink-0 text-muted-foreground">Lokasi</span>
@@ -231,9 +235,16 @@ export default function Page() {
                 <CardTitle className="text-lg font-bold">Aksi</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 pt-5">
-                <Button className="w-full bg-[#00458B] text-white hover:bg-[#00356b] shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 h-12 rounded-xl text-base font-bold">
-                  <ShoppingBag className="mr-2 h-5 w-5" />
-                  Beli Sekarang
+                <Button 
+                  onClick={handleToggleFavoriteMenu}
+                  className={`w-full shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 h-12 rounded-xl text-base font-bold ${
+                    isFavoriteMenu 
+                      ? "bg-red-50 text-red-500 hover:bg-red-100 border border-red-200" 
+                      : "bg-[#00458B] text-white hover:bg-[#00356b]"
+                  }`}
+                >
+                  <Heart className={`mr-2 h-5 w-5 ${isFavoriteMenu ? "fill-red-500" : ""}`} />
+                  {isFavoriteMenu ? "Tersimpan di Favorit" : "Simpan Menu"}
                 </Button>
                 <div className="grid grid-cols-2 gap-3">
                   <Button asChild variant="outline" className="w-full h-12 rounded-xl border-primary/30 text-primary hover:bg-primary/5 transition-all font-medium">

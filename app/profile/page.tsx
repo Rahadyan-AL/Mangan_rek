@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, UserIcon } from "lucide-react";
+import { LogOut, UserIcon, Settings, History, ShoppingBag, Loader2 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,10 @@ export default function Page() {
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
+  const [activeTab, setActiveTab] = useState<"profile" | "history">("profile");
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
   useEffect(() => {
     if (!role) {
       router.replace("/login");
@@ -123,6 +127,36 @@ export default function Page() {
       void loadProfile();
     }
   }, [role]);
+
+  useEffect(() => {
+    async function loadHistory() {
+      if (activeTab !== "history" || !role) return;
+      
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!baseUrl) return;
+
+      try {
+        setIsLoadingHistory(true);
+        const response = await fetch(`${baseUrl}/api/vouchers/history/user`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+        if (response.ok && data.success) {
+          setHistoryData(data.data || []);
+        }
+      } catch (err) {
+        console.error("Gagal memuat histori", err);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    }
+
+    loadHistory();
+  }, [activeTab, role]);
 
   async function handleLogout() {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -276,8 +310,38 @@ export default function Page() {
         </Card>
 
         <div className="flex flex-col gap-6">
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader>
+          {/* Tabs */}
+          <div className="flex gap-2 rounded-xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab("profile")}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
+                activeTab === "profile"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <Settings size={16} />
+              Pengaturan Profil
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("history")}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
+                activeTab === "history"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <History size={16} />
+              Histori Pembelian
+            </button>
+          </div>
+
+          {activeTab === "profile" && (
+            <>
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader>
               <CardTitle className="text-2xl font-bold">Update Profil</CardTitle>
             </CardHeader>
             <CardContent>
@@ -387,6 +451,91 @@ export default function Page() {
               </form>
             </CardContent>
           </Card>
+          </>
+          )}
+
+          {activeTab === "history" && (
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">Histori Pembelian</CardTitle>
+                <CardDescription>
+                  Daftar voucher yang pernah Anda beli. Tunjukkan QRIS atau kode unik ke kasir untuk menukarkan voucher.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingHistory ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                  </div>
+                ) : historyData.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                      <ShoppingBag size={20} />
+                    </div>
+                    <h3 className="mt-4 text-sm font-semibold text-slate-900">Belum ada pembelian</h3>
+                    <p className="mt-1 text-sm text-slate-500">Anda belum pernah membeli promo atau voucher.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {historyData.map((tx: any) => (
+                      <div key={tx.id} className="flex flex-col md:flex-row md:items-start justify-between gap-4 rounded-xl border border-slate-200 p-4">
+                        <div className="flex gap-4">
+                          {tx.voucher?.restaurant?.legalPhoto ? (
+                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-slate-100">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={tx.voucher.restaurant.legalPhoto} alt="Resto" className="h-full w-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs text-slate-400">
+                              No Img
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-slate-900">{tx.voucher?.title || "Voucher Promo"}</p>
+                            <p className="text-xs text-slate-500 mt-1">{tx.voucher?.restaurant?.name}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                                tx.status === "PAID" ? "bg-green-100 text-green-700" :
+                                tx.status === "PENDING" ? "bg-amber-100 text-amber-700" :
+                                "bg-slate-100 text-slate-700"
+                              }`}>
+                                {tx.status}
+                              </span>
+                              <span className="text-xs font-medium text-slate-700">Rp {tx.totalPaid.toLocaleString('id-ID')}</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-2">
+                              {new Date(tx.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+
+                        {tx.status === "PENDING" && tx.paymentUrl && (
+                          <div className="flex flex-col items-center gap-2 rounded-lg bg-slate-50 p-3 border border-slate-100 shrink-0">
+                            <p className="text-[10px] font-semibold uppercase text-slate-500">Scan QRIS untuk Bayar</p>
+                            <div className="rounded bg-white p-1 shadow-sm">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(tx.paymentUrl)}`} 
+                                alt="QRIS Code" 
+                                className="h-20 w-20 object-contain"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {tx.status === "PAID" && tx.uniqueCode && (
+                          <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-emerald-50 p-4 border border-emerald-100 shrink-0 min-w-[120px]">
+                            <p className="text-[10px] font-semibold uppercase text-emerald-600">Kode Unik</p>
+                            <p className="text-xl font-bold tracking-widest text-emerald-700">{tx.uniqueCode}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </main>

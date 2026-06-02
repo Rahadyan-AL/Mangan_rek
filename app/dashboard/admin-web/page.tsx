@@ -164,6 +164,7 @@ export default function Page() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border text-xs uppercase tracking-wide text-muted-foreground">
+                    <TableHead className="py-3 pr-4">Legalitas</TableHead>
                     <TableHead className="py-3 pr-4">Name</TableHead>
                     <TableHead className="py-3 pr-4">Email</TableHead>
                     <TableHead className="py-3 pr-4">Status</TableHead>
@@ -173,8 +174,24 @@ export default function Page() {
                 <TableBody>
                   {approvals.slice(0, 5).map((item) => (
                     <TableRow key={item.id} className="border-border/40">
+                      <TableCell className="py-4 pr-4">
+                        {item.restaurant?.legalPhoto ? (
+                          <div className="h-10 w-14 overflow-hidden rounded border border-border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={item.restaurant.legalPhoto} 
+                              alt="Foto Legalitas" 
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-10 w-14 items-center justify-center rounded border border-border bg-muted/50 text-[8px] text-muted-foreground">
+                            Tanpa Foto
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="py-4 pr-4 font-medium text-foreground">
-                        {item.name}
+                        {item.restaurant?.name || item.name}
                       </TableCell>
                       <TableCell className="py-4 pr-4 text-muted-foreground">
                         {item.email}

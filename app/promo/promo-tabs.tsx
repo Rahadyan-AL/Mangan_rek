@@ -83,6 +83,7 @@ export function PromoTabs({
     id: string;
     success: boolean;
     message: string;
+    paymentUrl?: string;
   } | null>(null);
 
   const activeVouchers = vouchers.filter(
@@ -113,6 +114,7 @@ export function PromoTabs({
           id: voucherId,
           success: true,
           message: json.message || "Voucher berhasil dibeli!",
+          paymentUrl: json.data?.paymentUrl,
         });
       } else {
         setBuyResult({
@@ -360,12 +362,27 @@ export function PromoTabs({
 
                   {/* Buy feedback message */}
                   {buyResult && buyResult.id === voucher.id && (
-                    <div className={`mx-2 rounded-lg border px-3 py-1.5 text-[10px] font-semibold ${
+                    <div className={`mx-2 rounded-lg border px-3 py-3 text-xs font-semibold flex flex-col gap-3 ${
                       buyResult.success
                         ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
                         : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
                     }`}>
-                      {buyResult.message}
+                      <p className="text-center">{buyResult.message}</p>
+                      
+                      {buyResult.success && buyResult.paymentUrl && (
+                        <div className="flex flex-col items-center gap-2 mt-2">
+                          <p className="text-center text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Silakan scan QRIS berikut</p>
+                          <div className="rounded-lg bg-white p-2 shadow-sm border border-border/50">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(buyResult.paymentUrl)}`} 
+                              alt="QRIS Code" 
+                              className="h-32 w-32 object-contain"
+                            />
+                          </div>
+                          <p className="text-[10px] text-center font-normal">Setelah scan, cek menu profil Anda secara berkala untuk melihat histori pembelian voucher Anda.</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
