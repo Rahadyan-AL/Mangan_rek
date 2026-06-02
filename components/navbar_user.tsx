@@ -86,19 +86,19 @@ export function Navbar({ children, initialRole = null }: { children: React.React
           </div>
 
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-            <Link href="/" className="hover:text-foreground">
+            <Link href="/" className={pathname === "/" ? "text-primary font-semibold" : "hover:text-foreground"}>
               Jelajahi
             </Link>
-            <Link href="/restaurants" className="hover:text-foreground">
+            <Link href="/restaurants" className={pathname.startsWith("/restaurants") ? "text-primary font-semibold" : "hover:text-foreground"}>
               Restoran
             </Link>
-            <Link href="/rencana-perjalanan" className="hover:text-foreground">
+            <Link href="/rencana-perjalanan" className={pathname.startsWith("/rencana-perjalanan") ? "text-primary font-semibold" : "hover:text-foreground"}>
               Rencana perjalanan
             </Link>
-            <Link href="/promo" className="hover:text-foreground">
+            <Link href="/promo" className={pathname.startsWith("/promo") ? "text-primary font-semibold" : "hover:text-foreground"}>
               Promo
             </Link>
-            <Link href="/favorit" className="hover:text-foreground">
+            <Link href="/favorit" className={pathname.startsWith("/favorit") ? "text-primary font-semibold" : "hover:text-foreground"}>
               Favorit
             </Link>
           </nav>
@@ -143,23 +143,23 @@ export function Navbar({ children, initialRole = null }: { children: React.React
                   </SheetHeader>
 
                   <div className="mt-6 flex flex-col gap-2 text-sm">
-                    <Link href="/" className="rounded-lg px-3 py-2 font-medium text-foreground hover:bg-muted">
+                    <Link href="/" className={`rounded-lg px-3 py-2 hover:bg-muted ${pathname === "/" ? "text-primary font-semibold bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-foreground font-medium"}`}>
                       Jelajahi
                     </Link>
-                    <Link href="/restaurants" className="rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground">
+                    <Link href="/restaurants" className={`rounded-lg px-3 py-2 hover:bg-muted ${pathname.startsWith("/restaurants") ? "text-primary font-semibold bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-foreground font-medium"}`}>
                       Restoran
                     </Link>
-                    <Link href="/rencana-perjalanan" className="rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground">
+                    <Link href="/rencana-perjalanan" className={`rounded-lg px-3 py-2 hover:bg-muted ${pathname.startsWith("/rencana-perjalanan") ? "text-primary font-semibold bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-foreground font-medium"}`}>
                       Rencana perjalanan
                     </Link>
-                    <Link href="/favorit" className="rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground">
+                    <Link href="/favorit" className={`rounded-lg px-3 py-2 hover:bg-muted ${pathname.startsWith("/favorit") ? "text-primary font-semibold bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-foreground font-medium"}`}>
                       Favorit
                     </Link>
-                    <Link href="/promo" className="rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground">
+                    <Link href="/promo" className={`rounded-lg px-3 py-2 hover:bg-muted ${pathname.startsWith("/promo") ? "text-primary font-semibold bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-foreground font-medium"}`}>
                       Promo
                     </Link>
                     {role ? (
-                      <Link href="/profile" className="rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground">
+                      <Link href="/profile" className={`rounded-lg px-3 py-2 hover:bg-muted ${pathname.startsWith("/profile") ? "text-primary font-semibold bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-foreground font-medium"}`}>
                         Profil
                       </Link>
                     ) : null}

@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/search-input";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { normalizePublicId } from "@/lib/public-restaurants";
 
 type RestaurantItem = {
@@ -72,22 +75,25 @@ const fallbackRestaurants: RestaurantItem[] = [
   },
 ];
 
-async function getRestaurants(): Promise<RestaurantItem[]> {
+async function getRestaurants(page: number, search: string): Promise<{ data: RestaurantItem[], pagination: { page: number, totalPages: number, total: number, limit: number } }> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  const defaultPagination = { page: 1, totalPages: 1, total: 0, limit: 10 };
 
-  if (!baseUrl) return fallbackRestaurants;
+  if (!baseUrl) return { data: fallbackRestaurants, pagination: defaultPagination };
 
   try {
     const response = await fetch(
-      `${baseUrl}/api/restaurants?page=1&limit=10&lat=-7.9666&lng=112.6326&sort=terdekat`,
+      `${baseUrl}/api/restaurants?page=${page}&limit=10&search=${encodeURIComponent(search)}`,
       { cache: "no-store" }
     );
 
-    if (!response.ok) return fallbackRestaurants;
+    if (!response.ok) return { data: fallbackRestaurants, pagination: defaultPagination };
 
     const data = await response.json().catch(() => null);
     const restaurants =
-      data?.data ?? data?.restaurants ?? data?.items ?? data?.results ?? [];
+      data?.data?.restaurants ?? data?.data ?? data?.restaurants ?? data?.items ?? data?.results ?? [];
+    
+    const pagination = data?.data?.pagination ?? defaultPagination;
 
     if (!Array.isArray(restaurants) || restaurants.length === 0) {
       return fallbackRestaurants;
@@ -122,7 +128,9 @@ async function getRestaurants(): Promise<RestaurantItem[]> {
             ? item.discount
             : undefined,
       image:
-        typeof item.image === "string"
+        typeof item.legalPhoto === "string"
+          ? item.legalPhoto
+          : typeof item.image === "string"
           ? item.image
           : "/image/makanan/bakso.jpg",
       category:
@@ -132,13 +140,19 @@ async function getRestaurants(): Promise<RestaurantItem[]> {
             ? item.type
             : "Kuliner",
     }));
+    return { data: parsedRestaurants, pagination };
   } catch {
-    return fallbackRestaurants;
+    return { data: fallbackRestaurants, pagination: { page: 1, totalPages: 1, total: 0, limit: 10 } };
   }
 }
 
-export default async function RestaurantsPage() {
-  const restaurants = await getRestaurants();
+export default async function RestaurantsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const resolvedParams = await searchParams;
+  const search = typeof resolvedParams?.search === "string" ? resolvedParams.search : "";
+  const pageParam = typeof resolvedParams?.page === "string" ? resolvedParams.page : "1";
+  const page = parseInt(pageParam, 10) || 1;
+
+  const { data: restaurants, pagination } = await getRestaurants(page, search);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -153,72 +167,111 @@ export default async function RestaurantsPage() {
               promo aktif, dan kategori kuliner.
             </p>
           </div>
-          <div className="flex w-full max-w-xl items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 shadow-sm md:w-105">
-            <span className="text-muted-foreground">🔍</span>
-            <Input
-              className="border-none bg-transparent shadow-none focus-visible:ring-0"
-              placeholder="Cari nama restoran..."
-            />
+          <div className="w-full md:w-auto">
+            <SearchInput defaultValue={search} />
           </div>
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {restaurants.map((restaurant, index) => (
-            <article
+          {restaurants.length > 0 ? restaurants.map((restaurant, index) => (
+            <Link
               key={restaurant.id ?? `${restaurant.name}-${index}`}
-              className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+              href={`/restaurants/restaurants-detail?restaurantId=${normalizePublicId(
+                restaurant.id ?? restaurant.name ?? "restaurant"
+              )}`}
+              className="group block"
             >
-              <div className="relative h-44 w-full">
-                <Image
-                  src={restaurant.image ?? "/image/makanan/bakso.jpg"}
-                  alt={restaurant.name ?? "Restaurant image"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="space-y-3 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-base font-semibold">
-                      {restaurant.name ?? "Nama restoran"}
-                    </h2>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {restaurant.address ?? "Alamat belum tersedia"}
-                    </p>
+              <article className="overflow-hidden rounded-[1.5rem] border border-border/50 bg-card/80 backdrop-blur-md shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:border-primary/30">
+                <div className="relative h-48 w-full overflow-hidden">
+                  <Image
+                    src={restaurant.image ?? "/image/makanan/bakso.jpg"}
+                    alt={restaurant.name ?? "Restaurant image"}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="space-y-3 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-bold group-hover:text-primary transition-colors">
+                        {restaurant.name ?? "Nama restoran"}
+                      </h2>
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
+                        {restaurant.address ?? "Alamat belum tersedia"}
+                      </p>
+                    </div>
                   </div>
-                  {restaurant.isPromoActive ? (
-                    <span className="rounded-full bg-secondary/10 px-2 py-1 text-xs text-secondary">
+                  
+                  {restaurant.isPromoActive && (
+                    <div className="inline-flex rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-bold text-red-600">
                       Promo Aktif
-                    </span>
-                  ) : null}
-                </div>
+                    </div>
+                  )}
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{restaurant.category ?? "Kuliner"}</span>
-                  <span>
-                    {typeof restaurant.distanceKm === "number"
-                      ? `${restaurant.distanceKm.toFixed(1)} km`
-                      : "-"}
-                  </span>
+                  {restaurant.discountDisplay ? (
+                    <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-primary/10 to-transparent px-4 py-2.5 text-xs">
+                      <span className="font-semibold text-primary">
+                        Diskon {restaurant.discountDisplay}%
+                      </span>
+                      <span className="text-primary font-medium group-hover:underline">Lihat Menu →</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-xl bg-muted/30 px-4 py-2.5 text-xs transition-colors group-hover:bg-primary/5">
+                      <span className="font-medium text-foreground">Menu & Detail</span>
+                      <span className="text-primary font-medium group-hover:underline">Lihat →</span>
+                    </div>
+                  )}
                 </div>
-
-                <div className="flex items-center justify-between rounded-xl bg-muted px-3 py-2 text-xs">
-                  <span className="font-medium text-foreground">
-                    Diskon {restaurant.discountDisplay ?? 0}%
-                  </span>
-                  <Link
-                    href={`/restaurants/restaurants-detail?restaurantId=${normalizePublicId(
-                      restaurant.id ?? restaurant.name ?? "restaurant"
-                    )}`}
-                    className="text-primary hover:underline"
-                  >
-                    Detail
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            </Link>
+          )) : (
+            <p className="text-sm text-muted-foreground col-span-3 text-center py-10">Belum tersedia</p>
+          )}
         </div>
+
+        {pagination.total > 0 && (
+          <div className="mt-10 flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={page <= 1}
+              asChild={page > 1}
+              className="h-8 w-8"
+            >
+              {page > 1 ? (
+                <Link href={`/restaurants?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Link>
+              ) : (
+                <span>
+                  <ChevronLeft className="h-4 w-4" />
+                </span>
+              )}
+            </Button>
+            
+            <span className="text-xs font-medium text-muted-foreground px-2">
+              {pagination.page} / {Math.ceil(pagination.total / pagination.limit)}
+            </span>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={page * pagination.limit >= pagination.total}
+              asChild={page * pagination.limit < pagination.total}
+              className="h-8 w-8"
+            >
+              {page * pagination.limit < pagination.total ? (
+                <Link href={`/restaurants?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}>
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <span>
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              )}
+            </Button>
+          </div>
+        )}
       </section>
     </main>
   );
