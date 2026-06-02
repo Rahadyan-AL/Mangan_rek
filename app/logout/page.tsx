@@ -36,6 +36,7 @@ export default function Page() {
     try {
       const response = await fetch(`${baseUrl}/api/auth/logout`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

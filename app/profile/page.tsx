@@ -131,6 +131,7 @@ export default function Page() {
       if (baseUrl) {
         await fetch(`${baseUrl}/api/auth/logout`, {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
         }).catch(() => {});
       }
