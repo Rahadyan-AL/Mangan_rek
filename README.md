@@ -1,4 +1,4 @@
-# Mangan Rek! - Malang Culinary Heritage 🍲
+# Mangan Rek! - Malang Culinary Heritage 
 
 **Mangan Rek!** adalah platform direktori kuliner modern yang dirancang khusus untuk menjelajahi, merencanakan perjalanan kuliner, serta mengelola promosi kuliner bersejarah di Kota Malang. Aplikasi ini dibangun dengan performa tinggi menggunakan Next.js App Router dan teknologi web modern lainnya.
 
