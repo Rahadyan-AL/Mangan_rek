@@ -65,9 +65,7 @@ export default function Page() {
         return;
       }
 
-      document.cookie = `${ROLE_COOKIE_NAME}=user; path=/; max-age=2592000; samesite=lax`;
-      document.cookie = `${ROLE_APPROVAL_COOKIE_NAME}=approved; path=/; max-age=2592000; samesite=lax`;
-      router.push("/");
+      router.push("/login");
     } catch {
       setError("Terjadi kesalahan saat registrasi. Coba lagi.");
     } finally {

@@ -165,7 +165,7 @@ export default function Page() {
           ))}
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="mt-8">
           <Card className="border border-border">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -216,35 +216,6 @@ export default function Page() {
             </CardContent>
           </Card>
 
-          <Card className="border border-border">
-            <CardHeader>
-              <CardTitle className="text-lg">Promo Setup</CardTitle>
-              <CardDescription>Atur jam promo dan diskon.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Start Time</p>
-                <div className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
-                  --:--
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">End Time</p>
-                <div className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
-                  --:--
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Discount (%)</p>
-                <div className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
-                  e.g. 20
-                </div>
-              </div>
-              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                Set Promo
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </section>
     </main>

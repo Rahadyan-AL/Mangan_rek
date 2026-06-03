@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, UserPlus, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,9 +88,10 @@ export default function Page() {
       setEmail("");
       setPassword("");
       fetchCashiers();
-      alert("Akun kasir berhasil dibuat!");
+      toast.success("Akun kasir berhasil dibuat!");
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan jaringan.");
+      toast.error("Gagal membuat akun kasir.");
     } finally {
       setIsSubmitting(false);
     }
@@ -139,9 +141,9 @@ export default function Page() {
       setEditName("");
       setEditPassword("");
       fetchCashiers();
-      alert("Detail kasir berhasil diperbarui!");
+      toast.success("Detail kasir berhasil diperbarui!");
     } catch (err: any) {
-      alert(err.message || "Terjadi kesalahan jaringan saat edit kasir.");
+      toast.error(err.message || "Terjadi kesalahan jaringan saat edit kasir.");
     } finally {
       setIsSavingEdit(false);
     }
@@ -158,13 +160,15 @@ export default function Page() {
       if (res.ok) {
         setCashiers((current) => current.filter((c) => c.id !== id));
         setDeletingId(null);
-        alert("Akun kasir berhasil dihapus!");
+        toast.success("Akun kasir berhasil dihapus!");
       } else {
         const data = await res.json();
-        alert(data.message || "Gagal menghapus kasir.");
+        toast.error(data.message || "Gagal menghapus kasir.");
       }
     } catch (err) {
-      alert("Terjadi kesalahan jaringan.");
+      toast.error("Terjadi kesalahan jaringan.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -340,19 +344,36 @@ export default function Page() {
               </Card>
             )}
 
-            {/* Delete Confirmation */}
-            {deletingId && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                <div className="mb-3 font-medium">Apakah Anda yakin ingin menghapus akun kasir ini secara permanen?</div>
-                <div className="flex gap-2">
-                  <Button variant="destructive" onClick={() => handleDelete(deletingId)}>Ya, Hapus</Button>
-                  <Button variant="outline" className="border-red-200 hover:bg-red-100" onClick={() => setDeletingId(null)}>Batal</Button>
-                </div>
-              </div>
-            )}
+            {/* Modal Delete dihapus dari list dan dipindah ke root main */}
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-sm border border-border bg-background/95 shadow-2xl animate-in zoom-in-95 duration-200">
+            <CardHeader className="pb-4 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <CardTitle className="text-xl">Hapus Akun Kasir?</CardTitle>
+              <CardDescription className="text-center mt-2">
+                Apakah Anda yakin ingin menghapus akun kasir ini secara permanen?
+                Tindakan ini tidak dapat dibatalkan.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-3 justify-center">
+              <Button variant="outline" className="flex-1" onClick={() => setDeletingId(null)}>
+                Batal
+              </Button>
+              <Button variant="destructive" className="flex-1" onClick={() => handleDelete(deletingId)}>
+                Hapus
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </main>
   );
 }

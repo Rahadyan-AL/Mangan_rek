@@ -20,11 +20,9 @@ const adminRestoRoutes = [
   { href: "/dashboard/admin-resto/menu", label: "Menu" },
   { href: "/dashboard/admin-resto/promo", label: "Promo" },
   { href: "/dashboard/admin-resto/vouchers", label: "Voucher" },
-  { href: "/dashboard/admin-resto/manajemen-kasir", label: "Manajemen Kasir" },
-  { href: "/dashboard/admin-resto/report", label: "Laporan Penjualan" },
-  { href: "/dashboard/admin-resto/history", label: "Riwayat Transaksi" },
-  { href: "/dashboard/admin-resto/profile", label: "Profil Restoran" },
-  { href: "/logout", label: "Logout" },
+  { href: "/dashboard/admin-resto/manajemen-kasir", label: "Kasir" },
+  { href: "/dashboard/admin-resto/report", label: "Laporan" },
+  { href: "/dashboard/admin-resto/profile", label: "Profil" },
 ];
 
 function isActivePath(pathname: string, href: string) {

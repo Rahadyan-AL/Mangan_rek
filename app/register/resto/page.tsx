@@ -88,8 +88,9 @@ export default function Page() {
         return;
       }
 
-      document.cookie = `${ROLE_COOKIE_NAME}=admin-resto; path=/; max-age=2592000; samesite=lax`;
-      document.cookie = `${ROLE_APPROVAL_COOKIE_NAME}=pending; path=/; max-age=2592000; samesite=lax`;
+      // Don't set cookies here because registration doesn't log the user in.
+      // The backend only creates the account, so we shouldn't act as if they are logged in.
+      // The user can login after registration to get their tokens and cookies.
       router.push("/pending-approval");
     } catch {
       setError("Terjadi kesalahan saat registrasi. Coba lagi.");

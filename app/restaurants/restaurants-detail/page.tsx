@@ -61,6 +61,7 @@ export default function Page() {
     id: string;
     success: boolean;
     message: string;
+    paymentUrl?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -155,7 +156,8 @@ export default function Page() {
     setBuyResult(null);
 
     try {
-      const res = await fetch(`/api/vouchers/buy`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${baseUrl}/api/vouchers/buy`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -174,6 +176,7 @@ export default function Page() {
           id: voucherId,
           success: true,
           message: json.message || "Voucher berhasil dibeli!",
+          paymentUrl: json.data?.paymentUrl,
         });
       } else {
         setBuyResult({
@@ -467,12 +470,8 @@ export default function Page() {
                         </div>
 
                         {/* Buy feedback message */}
-                        {buyResult && buyResult.id === voucher.id && (
-                          <div className={`mx-2 rounded-lg border px-3 py-1.5 text-[10px] font-semibold ${
-                            buyResult.success
-                              ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
-                              : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-                          }`}>
+                        {buyResult && buyResult.id === voucher.id && !buyResult.success && (
+                          <div className="mx-2 rounded-lg border px-3 py-1.5 text-[10px] font-semibold border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
                             {buyResult.message}
                           </div>
                         )}
@@ -661,6 +660,58 @@ export default function Page() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Payment Modal */}
+      {buyResult && buyResult.success && buyResult.paymentUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setBuyResult(null)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl flex flex-col items-center gap-4 text-slate-900">
+            <div className="flex items-center gap-2 text-green-600 mb-2">
+              <ShoppingCart className="h-5 w-5" />
+              <h3 className="text-lg font-bold">Voucher Berhasil Dipesan!</h3>
+            </div>
+            
+            <p className="text-center text-sm text-slate-500">
+              Silakan scan QRIS di bawah ini dengan aplikasi M-Banking atau e-Wallet Anda untuk menyelesaikan pembayaran.
+            </p>
+            
+            <div className="rounded-xl border-2 border-primary/20 p-4 shadow-sm bg-slate-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(buyResult.paymentUrl)}`} 
+                alt="QRIS Code" 
+                width={200}
+                height={200}
+                className="rounded-md mx-auto"
+              />
+            </div>
+            
+            <p className="text-xs text-center text-slate-500 max-w-[250px] mx-auto mt-2">
+              Status pembayaran akan diperbarui otomatis di menu <span className="font-semibold text-slate-700">Profil &gt; Histori Pembelian</span>.
+            </p>
+            
+            <Button
+              className="mt-4 w-full bg-[#00458B] text-white hover:bg-[#003a76] font-semibold"
+              onClick={() => {
+                setBuyResult(null);
+                router.push("/profile");
+              }}
+            >
+              Cek Histori Saya
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full text-slate-500 hover:text-slate-700"
+              onClick={() => setBuyResult(null)}
+            >
+              Tutup
+            </Button>
           </div>
         </div>
       )}

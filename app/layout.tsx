@@ -31,7 +31,7 @@ export default async function RootLayout({
     <html lang="en" className={`${poppins.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Navbar initialRole={role}>{children}</Navbar>
-        <Toaster richColors position="top-center" />
+        <Toaster richColors position="top-center" closeButton />
       </body>
     </html>
   );

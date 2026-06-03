@@ -9,7 +9,9 @@ import {
   RefreshCw,
   ShoppingBag,
   QrCode,
+  XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
@@ -76,7 +78,9 @@ export default function KasirHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [menus, setMenus] = useState<Record<string, string>>({});
   const [selectedQrisOrder, setSelectedQrisOrder] = useState<Order | null>(null);
+  const [selectedCancelOrder, setSelectedCancelOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
@@ -116,6 +120,31 @@ export default function KasirHistoryPage() {
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
+
+  const handleCancelOrder = async () => {
+    if (!selectedCancelOrder) return;
+    try {
+      setIsCancelling(true);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const res = await fetch(`${baseUrl}/api/pos/orders/${selectedCancelOrder.id}/cancel`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        toast.success("Order berhasil dibatalkan");
+        setSelectedCancelOrder(null);
+        fetchHistory(); // refresh the list
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Gagal membatalkan order");
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan koneksi");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#f6f6fb]">
@@ -243,6 +272,17 @@ export default function KasirHistoryPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-3">
+                      {status === "PENDING" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => setSelectedCancelOrder(order)}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          Batalkan
+                        </Button>
+                      )}
                       {status === "PENDING" && paymentMethod === "QRIS" && (
                         <Button
                           variant="outline"
@@ -352,6 +392,49 @@ export default function KasirHistoryPage() {
               >
                 Tutup
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Modal */}
+      {selectedCancelOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => !isCancelling && setSelectedCancelOrder(null)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 mb-2">
+                <XCircle className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Batalkan Pesanan?</h3>
+              <p className="text-sm text-slate-500 mb-4">
+                Apakah Anda yakin ingin membatalkan pesanan{" "}
+                <strong className="text-slate-700">#{selectedCancelOrder.id.substring(0, 8)}</strong> dari{" "}
+                <strong className="text-slate-700">{selectedCancelOrder.customerName || selectedCancelOrder.customer || "-"}</strong>?
+                Tindakan ini tidak dapat dikembalikan.
+              </p>
+              
+              <div className="flex w-full gap-3 mt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setSelectedCancelOrder(null)}
+                  disabled={isCancelling}
+                >
+                  Kembali
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  className="flex-1"
+                  onClick={handleCancelOrder}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? "Membatalkan..." : "Ya, Batalkan"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
