@@ -3,7 +3,8 @@
 import L from "leaflet";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Locate, Loader2 } from "lucide-react";
 
 // Use CDN for Leaflet marker images to fix Next.js 404 errors
 L.Icon.Default.mergeOptions({
@@ -64,6 +65,32 @@ export default function MapPicker({ latitude, longitude, onLocationSelect }: Map
   const markerPosition: [number, number] | null =
     latitude !== null && longitude !== null ? [latitude, longitude] : null;
 
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolokasi tidak didukung oleh browser Anda.");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsLocating(false);
+        onLocationSelect(position.coords.latitude, position.coords.longitude);
+      },
+      (error) => {
+        setIsLocating(false);
+        let errorMessage = "Gagal mendapatkan lokasi.";
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage = "Izin akses lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.";
+        }
+        alert(errorMessage);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
   return (
     <div className="relative h-[280px] w-full overflow-hidden rounded-xl border border-slate-200 shadow-sm">
       <MapContainer
@@ -82,6 +109,22 @@ export default function MapPicker({ latitude, longitude, onLocationSelect }: Map
         <MapClickHandler onLocationSelect={onLocationSelect} />
         {markerPosition && <Marker position={markerPosition} />}
       </MapContainer>
+
+      {/* Button to get current location */}
+      <button
+        type="button"
+        onClick={handleGetCurrentLocation}
+        disabled={isLocating}
+        className="absolute right-2 top-2 z-[1000] flex h-10 w-10 items-center justify-center rounded-lg bg-white text-slate-700 shadow-md border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Gunakan Lokasi Saat Ini"
+      >
+        {isLocating ? (
+          <Loader2 className="h-5 w-5 animate-spin text-[#00458B]" />
+        ) : (
+          <Locate className="h-5 w-5 text-[#00458B]" />
+        )}
+      </button>
+
       <div className="pointer-events-none absolute bottom-2 left-2 z-[1000] rounded-md bg-white/90 px-2.5 py-1 text-[11px] text-slate-500 shadow-sm backdrop-blur-sm">
         Klik pada peta untuk memilih lokasi restoran
       </div>
