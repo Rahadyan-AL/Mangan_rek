@@ -21,6 +21,7 @@ const adminWebRoutes = [
   { href: "/dashboard/admin-web/users", label: "Users" },
   { href: "/dashboard/admin-web/owners", label: "Owners" },
   { href: "/dashboard/admin-web/messages", label: "Pesan Masuk" },
+  { href: "/dashboard/admin-web/settle", label: "Settle Manual" },
   { href: "/logout", label: "Logout" },
 ];
 

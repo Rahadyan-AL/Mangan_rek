@@ -549,6 +549,10 @@ export default function Page() {
                 </div>
                 
                 <div>
+                  <div className="mb-2 flex items-center justify-between rounded-md bg-slate-50 p-2 border border-slate-100">
+                    <span className="text-xs text-slate-500">ID Pembelian</span>
+                    <span className="text-xs font-mono font-medium text-slate-700">{selectedTx.id}</span>
+                  </div>
                   <p className="font-semibold text-slate-900">{selectedTx.voucher?.title || "Voucher Promo"}</p>
                   <p className="text-sm text-slate-500">{selectedTx.voucher?.restaurant?.name}</p>
                   <p className="text-xs text-slate-400 mt-1">
