@@ -390,8 +390,10 @@ export default function RencanaPerjalananPage() {
                                       const prevName = index === 0 ? (startLoc?.label || "Awal") : itinerary[index - 1].restaurantName;
                                       const mins = stop.travelTimeMinutes || Math.round(stop.distanceFromPrev / 40 * 60) || 1;
                                       const h = Math.floor(mins / 60);
-                                      const m = Math.round(mins % 60);
-                                      return `+${h > 0 ? `${h} jam ${m}` : m} mnt dari ${prevName}`;
+                                      let m = Math.round(mins % 60);
+                                      if (h === 0 && m === 0) m = 1; // Minimal 1 menit
+                                      const timeStr = h > 0 ? (m > 0 ? `${h} jam ${m} mnt` : `${h} jam`) : `${m} mnt`;
+                                      return `+${timeStr} dari ${prevName}`;
                                     })()}
                                   </div>
                                   <div className="text-[10px] font-medium text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded mt-1">⏳ Singgah {stop.diningTimeMinutes} mnt</div>

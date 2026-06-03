@@ -95,7 +95,8 @@ export function PromoTabs({
     setBuyResult(null);
 
     try {
-      const res = await fetch(`/api/vouchers/buy`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${baseUrl}/api/vouchers/buy`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
