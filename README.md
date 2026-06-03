@@ -83,14 +83,20 @@ npm run start
 mangan_rek/
 ├── app/                  # Route utama menggunakan Next.js App Router
 │   ├── about/            # Halaman Tentang Kami (About Us)
+│   ├── api/              # API Routes Next.js
 │   ├── contact/          # Halaman Hubungi Kami (Contact Form)
 │   ├── dashboard/        # Dashboard Admin Web, Admin Resto, dan Kasir
 │   ├── favorit/          # Halaman Restoran Favorit Pengguna
 │   ├── login/            # Halaman Masuk Akun
+│   ├── logout/           # Proses Keluar Akun (Logout)
+│   ├── pending-approval/ # Halaman Menunggu Persetujuan Admin (Untuk Resto)
+│   ├── privacy_policy/   # Kebijakan Privasi
 │   ├── profile/          # Halaman Pengaturan Profil User
 │   ├── promo/            # Halaman Promo & Voucher Aktif
 │   ├── register/         # Halaman Registrasi (User & Resto)
-│   └── restaurants/      # Halaman Daftar dan Detail Restoran
+│   ├── rencana-perjalanan/ # Fitur Perencana Itinerary (Itinerary Planner)
+│   ├── restaurants/      # Halaman Daftar dan Detail Restoran
+│   └── terms_of_service/ # Syarat dan Ketentuan
 ├── components/           # Komponen UI Reusable (Navbar, Button, Card, dll.)
 ├── lib/                  # Fungsi Helper, Auth Utlity, dan konfigurasi API
 ├── public/               # Asset statik (Logo, Doodle, Gambar Restoran)
