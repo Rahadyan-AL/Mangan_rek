@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Eye } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,7 @@ export default function Page() {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null);
 
   const fetchOwners = useCallback(async () => {
     try {
@@ -56,6 +58,11 @@ export default function Page() {
   }, [fetchOwners]);
 
   async function toggleBan(id: string) {
+    const ownerObj = owners.find((o) => o.id === id);
+    const name = ownerObj ? ownerObj.name : "Owner";
+    const currentIsBanned = ownerObj?.status?.toUpperCase() === "BANNED";
+    const actionText = currentIsBanned ? "unban" : "ban";
+
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const res = await fetch(`${baseUrl}/api/admin/owners/${id}/ban`, {
@@ -64,17 +71,22 @@ export default function Page() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.message || "Gagal mengubah status ban");
+        toast.error(data.message || `Gagal mengubah status ban owner ${name}`);
         return;
       }
+      
+      const newStatus = currentIsBanned ? "ACTIVE" : "BANNED";
+      toast.success(`Berhasil mengubah status ${name} menjadi ${newStatus === "BANNED" ? "Banned" : "Aktif"}`);
       fetchOwners();
     } catch (err) {
-      alert("Terjadi kesalahan jaringan");
+      toast.error(`Terjadi kesalahan jaringan saat melakukan ${actionText}`);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Apakah Anda yakin ingin menghapus owner ini secara permanen?")) return;
+    const ownerObj = owners.find((o) => o.id === id);
+    const name = ownerObj ? ownerObj.name : "Owner";
+    if (!confirm(`Apakah Anda yakin ingin menghapus owner "${name}" secara permanen?`)) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const res = await fetch(`${baseUrl}/api/admin/owners/${id}`, {
@@ -83,12 +95,13 @@ export default function Page() {
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.message || "Gagal menghapus owner");
+        toast.error(data.message || `Gagal menghapus owner ${name}`);
         return;
       }
+      toast.success(`Owner "${name}" berhasil dihapus secara permanen`);
       setOwners((cur) => cur.filter((o) => o.id !== id));
     } catch (err) {
-      alert("Terjadi kesalahan jaringan");
+      toast.error("Terjadi kesalahan jaringan");
     }
   }
 
@@ -123,7 +136,7 @@ export default function Page() {
                 </TableHeader>
                 <TableBody>
                   {owners.map((o) => {
-                    const isBanned = o.status === "BANNED";
+                    const isBanned = o.status?.toUpperCase() === "BANNED";
                     return (
                       <TableRow key={o.id} className="border-border/40">
                         <TableCell className="py-4 pr-4 font-medium">{o.name}</TableCell>
@@ -132,11 +145,14 @@ export default function Page() {
                         </TableCell>
                         <TableCell className="py-4 pr-4">
                           <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${isBanned ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                            {o.status}
+                            {isBanned ? "BANNED" : "ACTIVE"}
                           </span>
                         </TableCell>
                         <TableCell className="py-4">
                           <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => setSelectedOwner(o)} title="Detail Owner">
+                              <Eye className="h-4 w-4" />
+                            </Button>
                             <Button size="sm" variant={isBanned ? "secondary" : "outline"} onClick={() => toggleBan(o.id)}>
                               {isBanned ? "Unban" : "Ban"}
                             </Button>
@@ -154,6 +170,62 @@ export default function Page() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Owner Details Modal */}
+      {selectedOwner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md border border-border bg-background/95 shadow-2xl animate-in zoom-in-95 duration-200">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Eye className="h-5 w-5 text-primary" />
+                Detail Owner
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="space-y-1 rounded-lg border border-border/50 bg-muted/30 p-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ID Owner</p>
+                <p className="font-mono text-xs select-all text-foreground">{selectedOwner.id}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1 rounded-lg border border-border/50 bg-muted/30 p-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nama</p>
+                  <p className="font-medium text-foreground">{selectedOwner.name}</p>
+                </div>
+                <div className="space-y-1 rounded-lg border border-border/50 bg-muted/30 p-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Role</p>
+                  <p className="font-medium text-foreground capitalize">{selectedOwner.role}</p>
+                </div>
+              </div>
+              <div className="space-y-1 rounded-lg border border-border/50 bg-muted/30 p-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</p>
+                <p className="font-medium text-foreground break-all">{selectedOwner.email}</p>
+              </div>
+              <div className="space-y-1 rounded-lg border border-border/50 bg-muted/30 p-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</p>
+                <div>
+                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${selectedOwner.status?.toUpperCase() === "BANNED" ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                    {selectedOwner.status?.toUpperCase() === "BANNED" ? "BANNED" : "ACTIVE"}
+                  </span>
+                </div>
+              </div>
+              {selectedOwner.restaurant && (
+                <div className="space-y-2 rounded-lg border border-border/50 bg-primary/5 p-3">
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wider">Data Restoran</p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Nama Restoran</p>
+                    <p className="font-medium text-foreground">{selectedOwner.restaurant.name}</p>
+                  </div>
+                </div>
+              )}
+              <div className="pt-2 flex justify-end">
+                <Button onClick={() => setSelectedOwner(null)} className="w-full">
+                  Tutup
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </main>
   );
 }
