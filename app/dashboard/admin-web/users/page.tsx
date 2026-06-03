@@ -22,6 +22,12 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
+
+  const filteredUsers = users.filter((u) => {
+    if (roleFilter === "ALL") return true;
+    return u.role?.toUpperCase() === roleFilter;
+  });
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -118,12 +124,19 @@ export default function Page() {
             <CardTitle className="text-lg">All Users</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="flex gap-2 mb-6">
+              <Button size="sm" variant={roleFilter === "ALL" ? "default" : "outline"} onClick={() => setRoleFilter("ALL")}>Semua</Button>
+              <Button size="sm" variant={roleFilter === "USER" ? "default" : "outline"} onClick={() => setRoleFilter("USER")}>User Biasa</Button>
+              <Button size="sm" variant={roleFilter === "CASHIER" ? "default" : "outline"} onClick={() => setRoleFilter("CASHIER")}>Kasir</Button>
+              <Button size="sm" variant={roleFilter === "ADMIN_RESTO" ? "default" : "outline"} onClick={() => setRoleFilter("ADMIN_RESTO")}>Admin Resto</Button>
+            </div>
+            
             {isLoading ? (
               <p className="text-sm text-muted-foreground">Memuat data...</p>
             ) : error ? (
               <p className="text-sm text-red-500">{error}</p>
-            ) : users.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Belum ada user yang terdaftar.</p>
+            ) : filteredUsers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Tidak ada user ditemukan.</p>
             ) : (
               <Table>
                 <TableHeader>
@@ -135,11 +148,14 @@ export default function Page() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((u) => {
+                  {filteredUsers.map((u) => {
                     const isBanned = u.status?.toUpperCase() === "REJECTED";
                     return (
                       <TableRow key={u.id} className="border-border/40">
-                        <TableCell className="py-4 pr-4 font-medium">{u.name}</TableCell>
+                        <TableCell className="py-4 pr-4 font-medium">
+                          {u.name}
+                          <div className="text-xs text-muted-foreground mt-0.5 capitalize font-normal">{u.role?.toLowerCase() || "-"}</div>
+                        </TableCell>
                         <TableCell className="py-4 pr-4 text-muted-foreground">{u.email}</TableCell>
                         <TableCell className="py-4 pr-4">
                           <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${isBanned ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>

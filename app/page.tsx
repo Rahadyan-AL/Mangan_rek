@@ -14,6 +14,7 @@ export default async function Home({ searchParams }: PageProps) {
   const search = typeof resolvedParams?.search === "string" ? resolvedParams.search : "";
   const pageParam = typeof resolvedParams?.page === "string" ? resolvedParams.page : "1";
   const page = parseInt(pageParam, 10) || 1;
+  const sort = typeof resolvedParams?.sort === "string" ? resolvedParams.sort : "asc";
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +34,15 @@ export default async function Home({ searchParams }: PageProps) {
       }
       if (!Array.isArray(recommendations)) {
         recommendations = [];
+      } else {
+        recommendations.sort((a, b) => {
+          const nameA = (a.name || a.restaurantName || "").toLowerCase();
+          const nameB = (b.name || b.restaurantName || "").toLowerCase();
+          if (sort === "desc") {
+            return nameB.localeCompare(nameA);
+          }
+          return nameA.localeCompare(nameB);
+        });
       }
     }
   } catch (error) {
@@ -53,16 +63,33 @@ export default async function Home({ searchParams }: PageProps) {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 pb-16">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold">Rekomendasi Kuliner</h2>
             <p className="text-sm text-muted-foreground">
               Spot kuliner terpopuler di Malang yang wajib dicoba.
             </p>
           </div>
-          <Link href="/restaurants" className="text-sm text-primary hover:underline">
-            Lihat Semua Restoran →
-          </Link>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 text-sm border rounded-lg p-1 bg-muted/20">
+              <span className="text-muted-foreground px-2 hidden sm:inline-block">Urutkan:</span>
+              <Link 
+                href={`/?page=${page}${search ? `&search=${encodeURIComponent(search)}` : ""}&sort=asc`}
+                className={`px-3 py-1.5 rounded-md transition-colors ${sort !== 'desc' ? 'bg-primary text-primary-foreground font-medium shadow-sm' : 'hover:bg-muted text-muted-foreground'}`}
+              >
+                A-Z
+              </Link>
+              <Link 
+                href={`/?page=${page}${search ? `&search=${encodeURIComponent(search)}` : ""}&sort=desc`}
+                className={`px-3 py-1.5 rounded-md transition-colors ${sort === 'desc' ? 'bg-primary text-primary-foreground font-medium shadow-sm' : 'hover:bg-muted text-muted-foreground'}`}
+              >
+                Z-A
+              </Link>
+            </div>
+            <Link href="/restaurants" className="hidden sm:inline-block text-sm text-primary hover:underline whitespace-nowrap">
+              Lihat Semua →
+            </Link>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -112,7 +139,7 @@ export default async function Home({ searchParams }: PageProps) {
               className="h-8 w-8"
             >
               {page > 1 ? (
-                <Link href={`/?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}>
+                <Link href={`/?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ""}&sort=${sort}`}>
                   <ChevronLeft className="h-4 w-4" />
                 </Link>
               ) : (
@@ -134,7 +161,7 @@ export default async function Home({ searchParams }: PageProps) {
               className="h-8 w-8"
             >
               {page * pagination.limit < pagination.total ? (
-                <Link href={`/?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}>
+                <Link href={`/?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}&sort=${sort}`}>
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               ) : (

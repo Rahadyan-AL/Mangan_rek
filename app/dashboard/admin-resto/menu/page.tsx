@@ -19,6 +19,7 @@ import {
 export default function Page() {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,10 +67,16 @@ export default function Page() {
       toast.error("Terjadi kesalahan jaringan saat menghapus menu");
     }
   }
-
-  const filteredMenuItems = menuItems.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMenuItems = menuItems
+    .filter((item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === "desc") {
+        return b.name.localeCompare(a.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
 
   return (
     <main className="min-h-screen bg-background px-6 py-10 text-foreground">
@@ -87,7 +94,6 @@ export default function Page() {
             </Link>
           </Button>
         </header>
-
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -98,6 +104,20 @@ export default function Page() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
             />
+          </div>
+          <div className="flex items-center gap-1 border rounded-lg p-1 bg-card shadow-sm shrink-0">
+            <button 
+              onClick={() => setSortOrder('asc')}
+              className={`px-3 py-1.5 rounded-md text-sm transition-colors ${sortOrder === 'asc' ? 'bg-[#00458B] text-white font-medium' : 'hover:bg-muted text-muted-foreground'}`}
+            >
+              A-Z
+            </button>
+            <button 
+              onClick={() => setSortOrder('desc')}
+              className={`px-3 py-1.5 rounded-md text-sm transition-colors ${sortOrder === 'desc' ? 'bg-[#00458B] text-white font-medium' : 'hover:bg-muted text-muted-foreground'}`}
+            >
+              Z-A
+            </button>
           </div>
         </div>
 

@@ -59,6 +59,7 @@ export default function Page() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isMenuLoading, setIsMenuLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [voucher, setVoucher] = useState<VoucherState>({
     code: "",
@@ -100,14 +101,22 @@ export default function Page() {
   }, [fetchMenus]);
 
   const filteredMenu = useMemo(() => {
+    let result = menuItems;
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return menuItems;
-    return menuItems.filter(
-      (item) =>
-        item.name.toLowerCase().includes(keyword) ||
-        (item.description?.toLowerCase().includes(keyword) ?? false)
-    );
-  }, [menuItems, search]);
+    if (keyword) {
+      result = result.filter(
+        (item) =>
+          item.name.toLowerCase().includes(keyword) ||
+          (item.description?.toLowerCase().includes(keyword) ?? false)
+      );
+    }
+    return [...result].sort((a, b) => {
+      if (sortOrder === "desc") {
+        return b.name.localeCompare(a.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [menuItems, search, sortOrder]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = voucher.applied
@@ -276,14 +285,30 @@ export default function Page() {
                 </div>
               </div>
 
-              <div className="relative w-full xl:max-w-xl">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search menu..."
-                  className="h-11 rounded-lg border-slate-200 bg-white pl-11 shadow-sm"
-                />
+              <div className="flex items-center gap-3 w-full xl:max-w-xl">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search menu..."
+                    className="h-11 rounded-lg border-slate-200 bg-white pl-11 shadow-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-1 border rounded-lg p-1 bg-white shadow-sm shrink-0">
+                  <button 
+                    onClick={() => setSortOrder('asc')}
+                    className={`px-3 py-1.5 rounded-md text-sm transition-colors ${sortOrder === 'asc' ? 'bg-[#00458B] text-white font-medium' : 'hover:bg-slate-100 text-slate-600'}`}
+                  >
+                    A-Z
+                  </button>
+                  <button 
+                    onClick={() => setSortOrder('desc')}
+                    className={`px-3 py-1.5 rounded-md text-sm transition-colors ${sortOrder === 'desc' ? 'bg-[#00458B] text-white font-medium' : 'hover:bg-slate-100 text-slate-600'}`}
+                  >
+                    Z-A
+                  </button>
+                </div>
               </div>
             </div>
           </div>
