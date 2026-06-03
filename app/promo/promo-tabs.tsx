@@ -208,7 +208,7 @@ export function PromoTabs({
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <CardTitle className="text-xl">
-                          Diskon {promo.discount}%
+                          Potongan {promo.discount}%
                         </CardTitle>
                         <CardDescription className="mt-1 flex items-center gap-1.5">
                           <Utensils size={13} />
@@ -278,7 +278,13 @@ export function PromoTabs({
                           Potongan
                         </p>
                         <p className="text-sm font-semibold text-foreground">
-                          {promo.discount}% dari harga menu
+                          {promo.type === "SPECIFIC" && promo.menus.length > 0 ? (
+                            <>
+                              Hemat s.d. Rp{Math.max(...promo.menus.map((m: PromoMenu) => Math.round(m.price * promo.discount / 100))).toLocaleString("id-ID")} per menu
+                            </>
+                          ) : (
+                            <>{promo.discount}% dari harga menu</>
+                          )}
                         </p>
                       </div>
                       <Button
