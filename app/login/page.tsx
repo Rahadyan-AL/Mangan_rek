@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -225,6 +225,17 @@ export default function Page() {
               </div>
             </CardFooter>
           </Card>
+
+          {/* Back Button */}
+          <div className="mt-4 flex justify-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-white/70 hover:text-[#00458B]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali ke Beranda
+            </Link>
+          </div>
       </div>
     </main>
   );

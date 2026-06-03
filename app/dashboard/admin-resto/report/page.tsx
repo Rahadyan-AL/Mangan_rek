@@ -17,6 +17,9 @@ export default function ReportPage() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Date filter
+  const [filterDate, setFilterDate] = useState<string>(""); // "YYYY-MM-DD"
   
   // View Detail
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -100,12 +103,29 @@ export default function ReportPage() {
     }
   }
 
+  // Filter by date (client-side)
+  const filteredItems = filterDate
+    ? historyItems.filter((item) => {
+        if (!item.createdAt) return false;
+        const itemDate = new Date(item.createdAt).toLocaleDateString("sv-SE"); // YYYY-MM-DD
+        return itemDate === filterDate;
+      })
+    : historyItems;
+
   // Pagination Logic
-  const totalPages = Math.ceil(historyItems.length / ITEMS_PER_PAGE) || 1;
-  const paginatedItems = historyItems.slice(
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE) || 1;
+  const paginatedItems = filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  // Summary for filtered day
+  const filteredRevenue = filteredItems
+    .filter((i) => ["COMPLETED", "PAID", "SUCCESS", "SETTLED"].includes(i.status))
+    .reduce((sum, i) => sum + (i.totalAmount || 0), 0);
+  const filteredCount = filteredItems.length;
+
+  const todayStr = new Date().toLocaleDateString("sv-SE");
 
   return (
     <main className="min-h-screen bg-background px-6 py-10 text-foreground">
@@ -196,7 +216,51 @@ export default function ReportPage() {
                 Riwayat Transaksi Terbaru
               </h2>
               
-              {historyItems.length === 0 ? (
+              {/* Date Filter */}
+              <div className="mb-5 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Filter Tanggal</label>
+                  <input
+                    type="date"
+                    value={filterDate}
+                    max={todayStr}
+                    onChange={(e) => { setFilterDate(e.target.value); setCurrentPage(1); }}
+                    className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => { setFilterDate(todayStr); setCurrentPage(1); }}
+                >
+                  Hari Ini
+                </Button>
+                {filterDate && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 text-muted-foreground"
+                    onClick={() => { setFilterDate(""); setCurrentPage(1); }}
+                  >
+                    Hapus Filter
+                  </Button>
+                )}
+                {filterDate && (
+                  <div className="ml-auto flex gap-4 text-sm">
+                    <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-1.5 text-center">
+                      <p className="text-xs text-muted-foreground">Transaksi</p>
+                      <p className="font-bold text-foreground">{filteredCount}</p>
+                    </div>
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-center">
+                      <p className="text-xs text-emerald-600">Pendapatan</p>
+                      <p className="font-bold text-emerald-700">Rp {filteredRevenue.toLocaleString("id-ID")}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {filteredItems.length === 0 ? (
                 <div className="py-12 text-center rounded-2xl border border-dashed border-border bg-card">
                   <ShoppingBag className="mx-auto h-10 w-10 text-muted-foreground mb-4 opacity-50" />
                   <p className="text-sm text-muted-foreground">Belum ada riwayat transaksi penjualan.</p>

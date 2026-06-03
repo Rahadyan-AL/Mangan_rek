@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Clock,
+  FileText,
   History,
   LogOut,
+  Printer,
   RefreshCw,
   ShoppingBag,
   QrCode,
@@ -40,6 +42,12 @@ type Order = {
   qrisString?: string;
   qrCode?: string;
   qrString?: string;
+};
+
+type RestoInfo = {
+  name?: string;
+  description?: string | null;
+  address?: string | null;
 };
 
 function formatRupiah(value: number) {
@@ -77,11 +85,14 @@ const STATUS_STYLES: Record<string, string> = {
 export default function KasirHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [menus, setMenus] = useState<Record<string, string>>({});
+  const [restoInfo, setRestoInfo] = useState<RestoInfo | null>(null);
   const [selectedQrisOrder, setSelectedQrisOrder] = useState<Order | null>(null);
   const [selectedCancelOrder, setSelectedCancelOrder] = useState<Order | null>(null);
+  const [selectedNotaOrder, setSelectedNotaOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const notaRef = useRef<HTMLDivElement>(null);
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -89,9 +100,10 @@ export default function KasirHistoryPage() {
       setError(null);
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
       
-      const [resHistory, resMenus] = await Promise.all([
+      const [resHistory, resMenus, resProfile] = await Promise.all([
         fetch(`${baseUrl}/api/pos/orders/history`, { credentials: "include" }),
-        fetch(`${baseUrl}/api/pos/menus`, { credentials: "include" })
+        fetch(`${baseUrl}/api/pos/menus`, { credentials: "include" }),
+        fetch(`${baseUrl}/api/restaurants/profile`, { credentials: "include" }).catch(() => null),
       ]);
 
       if (!resHistory.ok) throw new Error("Gagal mengambil data history.");
@@ -109,6 +121,13 @@ export default function KasirHistoryPage() {
           });
           setMenus(menuMap);
         }
+      }
+
+      if (resProfile && resProfile.ok) {
+        const profileData = await resProfile.json();
+        // API returns { data: { name, description, address, ... } }
+        const info = profileData.data || profileData.restaurant || profileData;
+        setRestoInfo(info);
       }
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan");
@@ -134,16 +153,146 @@ export default function KasirHistoryPage() {
       if (res.ok) {
         toast.success("Order berhasil dibatalkan");
         setSelectedCancelOrder(null);
-        fetchHistory(); // refresh the list
+        fetchHistory();
       } else {
         const data = await res.json();
         toast.error(data.message || "Gagal membatalkan order");
       }
-    } catch (err) {
+    } catch {
       toast.error("Terjadi kesalahan koneksi");
     } finally {
       setIsCancelling(false);
     }
+  };
+
+  const handlePrintNota = () => {
+    const printContent = notaRef.current;
+    if (!printContent) return;
+
+    const printWindow = window.open("", "_blank", "width=400,height=600");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Nota Transaksi</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: 'Courier New', monospace;
+              font-size: 12px;
+              color: #111;
+              padding: 16px;
+              max-width: 380px;
+              margin: 0 auto;
+            }
+            .header { text-align: center; margin-bottom: 12px; }
+            .header h1 { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
+            .header p { font-size: 11px; color: #444; margin-top: 2px; }
+            .divider { border-top: 1px dashed #999; margin: 10px 0; }
+            .divider-solid { border-top: 2px solid #111; margin: 10px 0; }
+            .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+            .row .label { color: #555; }
+            .row .value { font-weight: 600; text-align: right; max-width: 60%; }
+            .items-header { font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; color: #444; }
+            .item-row { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 11px; }
+            .item-name { flex: 1; }
+            .item-qty { width: 30px; text-align: center; }
+            .item-price { text-align: right; }
+            .total-row { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-top: 6px; }
+            .payment-row { display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; }
+            .footer { text-align: center; margin-top: 14px; font-size: 11px; color: #666; }
+            .order-id { font-size: 10px; color: #888; text-align: center; margin-bottom: 8px; }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+          <script>window.onload = function() { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // Build nota content for the selected order
+  const renderNotaContent = (order: Order) => {
+    const customerName = order.customerName || order.customer || "-";
+    const totalAmount = order.totalAmount ?? order.total ?? 0;
+    const paymentMethod = order.paymentMethod || "-";
+    const timestamp = order.createdAt || order.updatedAt;
+    const items = order.items || [];
+
+    const restoName = restoInfo?.name || "Restoran";
+    const restoDesc = restoInfo?.description || "";
+    const restoAddress = restoInfo?.address || "";
+
+    return (
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: "13px", color: "#111" }}>
+        {/* Header Resto */}
+        <div style={{ textAlign: "center", marginBottom: "12px" }}>
+          <h1 style={{ fontSize: "18px", fontWeight: "bold", letterSpacing: "1px" }}>Nota</h1>
+
+        </div>
+
+        <div style={{ borderTop: "2px solid #111", margin: "10px 0" }} />
+
+        {/* Order info */}
+        {timestamp && (
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+            <span style={{ color: "#555" }}>Tanggal</span>
+            <span style={{ fontWeight: 600 }}>{formatDateTime(timestamp)}</span>
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+          <span style={{ color: "#555" }}>Pelanggan</span>
+          <span style={{ fontWeight: 600 }}>{customerName}</span>
+        </div>
+
+        <div style={{ borderTop: "1px dashed #999", margin: "10px 0" }} />
+
+        {/* Items */}
+        <p style={{ fontWeight: "bold", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", color: "#444" }}>
+          Menu yang Dipesan
+        </p>
+        {items.length > 0 ? (
+          items.map((item, idx) => {
+            const itemName =
+              item.menuName || item.name || menus[item.menuId || ""] || item.menuId || "-";
+            const itemPrice = item.price ?? 0;
+            const itemTotal = item.subtotal ?? (item.price != null ? item.price * item.quantity : 0);
+            return (
+              <div key={idx} style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px", fontSize: "12px" }}>
+                <span style={{ flex: 1 }}>{itemName}</span>
+                <span style={{ width: "30px", textAlign: "center" }}>×{item.quantity}</span>
+                <span style={{ textAlign: "right" }}>{formatRupiah(itemTotal)}</span>
+              </div>
+            );
+          })
+        ) : (
+          <p style={{ color: "#888", fontSize: "11px" }}>-</p>
+        )}
+
+        <div style={{ borderTop: "1px dashed #999", margin: "10px 0" }} />
+
+        {/* Total */}
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "15px", fontWeight: "bold", marginBottom: "6px" }}>
+          <span>TOTAL</span>
+          <span>{formatRupiah(totalAmount)}</span>
+        </div>
+
+        {/* Payment */}
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+          <span style={{ color: "#555" }}>Pembayaran</span>
+          <span style={{ fontWeight: 600 }}>{paymentMethod}</span>
+        </div>
+
+        <div style={{ borderTop: "2px solid #111", margin: "12px 0" }} />
+
+        
+      </div>
+    );
   };
 
   return (
@@ -271,7 +420,18 @@ export default function KasirHistoryPage() {
                         <span className="text-xs">{formatDateTime(timestamp)}</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Nota Button - always visible */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1 border-[#00458B] text-[#00458B] hover:bg-[#e8edf7]"
+                        onClick={() => setSelectedNotaOrder(order)}
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        Lihat Nota
+                      </Button>
+
                       {status === "PENDING" && (
                         <Button
                           variant="outline"
@@ -333,6 +493,63 @@ export default function KasirHistoryPage() {
           Logout
         </Link>
       </aside>
+
+      {/* ── Nota Modal ── */}
+      {selectedNotaOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedNotaOrder(null)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-[#f8fafc]">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e8edf7] text-[#00458B]">
+                  <FileText className="h-4 w-4" />
+                </div>
+                <h3 className="text-base font-semibold text-slate-800">Nota Transaksi</h3>
+              </div>
+              <button
+                onClick={() => setSelectedNotaOrder(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+              >
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Nota Preview */}
+            <div className="px-5 py-4 max-h-[60vh] overflow-y-auto">
+              {/* Hidden div used for print */}
+              <div ref={notaRef} style={{ display: "none" }}>
+                {renderNotaContent(selectedNotaOrder)}
+              </div>
+              {/* Visible preview */}
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
+                {renderNotaContent(selectedNotaOrder)}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 px-5 py-4 border-t border-slate-100 bg-[#f8fafc]">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setSelectedNotaOrder(null)}
+              >
+                Tutup
+              </Button>
+              <Button
+                className="flex-1 gap-2 bg-[#00458B] text-white hover:bg-[#003a76]"
+                onClick={handlePrintNota}
+              >
+                <Printer className="h-4 w-4" />
+                Print / Export
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* QRIS Modal */}
       {selectedQrisOrder && (
