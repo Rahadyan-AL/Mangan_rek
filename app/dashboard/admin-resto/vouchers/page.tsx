@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Plus, Trash2, Pencil, Ticket, Calendar, AlertCircle, Coins, Archive } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,9 @@ export default function VouchersPage() {
   
   // Edit State
   const [editingVoucherId, setEditingVoucherId] = useState<string | null>(null);
+  
+  // Delete State
+  const [deleteConfirmVoucher, setDeleteConfirmVoucher] = useState<any | null>(null);
 
   const fetchVouchers = useCallback(async () => {
     try {
@@ -142,16 +146,16 @@ export default function VouchersPage() {
 
       handleCancelEdit();
       fetchVouchers();
-      alert(editingVoucherId ? "Voucher berhasil diperbarui!" : "Voucher berhasil ditambahkan!");
+      toast.success(editingVoucherId ? "Voucher berhasil diperbarui!" : "Voucher berhasil ditambahkan!");
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan koneksi.");
+      toast.error("Gagal menyimpan voucher");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Apakah Anda yakin ingin menghapus voucher ini?")) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const res = await fetch(`${baseUrl}/api/vouchers/${id}`, {
@@ -161,13 +165,15 @@ export default function VouchersPage() {
 
       if (res.ok) {
         setVouchers((cur) => cur.filter((v) => v.id !== id));
-        alert("Voucher berhasil dihapus!");
+        toast.success("Voucher berhasil dihapus!");
       } else {
         const data = await res.json();
-        alert(data.message || "Gagal menghapus voucher.");
+        toast.error(data.message || "Gagal menghapus voucher.");
       }
     } catch (err) {
-      alert("Terjadi kesalahan jaringan.");
+      toast.error("Terjadi kesalahan jaringan.");
+    } finally {
+      setDeleteConfirmVoucher(null);
     }
   }
 
@@ -261,7 +267,7 @@ export default function VouchersPage() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(voucher.id)}
+                        onClick={() => setDeleteConfirmVoucher(voucher)}
                       >
                         <Trash2 className="mr-1.5 h-4 w-4" /> Hapus
                       </Button>
@@ -382,6 +388,32 @@ export default function VouchersPage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmVoucher && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-sm border border-border bg-background/95 shadow-2xl animate-in zoom-in-95 duration-200">
+            <CardHeader className="pb-4 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <CardTitle className="text-xl">Hapus Voucher?</CardTitle>
+              <CardDescription className="text-center mt-2">
+                Apakah Anda yakin ingin menghapus voucher <span className="font-bold text-foreground">{deleteConfirmVoucher.title}</span>?
+                Riwayat transaksi yang terkait dengan voucher ini tidak akan dihapus.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-3 justify-center">
+              <Button variant="outline" className="flex-1" onClick={() => setDeleteConfirmVoucher(null)}>
+                Batal
+              </Button>
+              <Button variant="destructive" className="flex-1" onClick={() => handleDelete(deleteConfirmVoucher.id)}>
+                Hapus
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </main>
   );
 }

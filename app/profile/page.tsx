@@ -78,6 +78,7 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState<"profile" | "history">("profile");
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<any>(null);
 
   useEffect(() => {
     if (!role) {
@@ -519,43 +520,85 @@ export default function Page() {
                           </div>
                         </div>
 
-                        {tx.status === "PENDING" && tx.paymentUrl && (
-                          <div className="flex flex-col items-center gap-2 rounded-lg bg-slate-50 p-3 border border-slate-100 shrink-0">
-                            {(new Date().getTime() - new Date(tx.createdAt).getTime() > 15 * 60 * 1000) ? (
-                              <>
-                                <p className="text-[10px] font-semibold uppercase text-red-500">QR Kadaluarsa</p>
-                                <div className="flex h-20 w-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">
-                                  Expired
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-[10px] font-semibold uppercase text-slate-500">Scan QRIS untuk Bayar</p>
-                                <div className="rounded bg-white p-1 shadow-sm">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img 
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(tx.paymentUrl)}`} 
-                                    alt="QRIS Code" 
-                                    className="h-20 w-20 object-contain"
-                                  />
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        )}
-                        
-                        {tx.status === "PAID" && tx.uniqueCode && (
-                          <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-emerald-50 p-4 border border-emerald-100 shrink-0 min-w-[120px]">
-                            <p className="text-[10px] font-semibold uppercase text-emerald-600">Kode Unik</p>
-                            <p className="text-xl font-bold tracking-widest text-emerald-700">{tx.uniqueCode}</p>
-                          </div>
-                        )}
+                        <div className="flex flex-col justify-end shrink-0">
+                          <Button size="sm" variant="outline" onClick={() => setSelectedTx(tx)}>
+                            Lihat Detail
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
               </CardContent>
             </Card>
+          )}
+          
+          {/* Detail Modal */}
+          {selectedTx && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setSelectedTx(null)}
+              />
+              <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl flex flex-col gap-4 text-slate-900">
+                <div className="flex items-center justify-between border-b pb-3">
+                  <h3 className="text-lg font-bold">Detail Transaksi</h3>
+                  <button onClick={() => setSelectedTx(null)} className="text-slate-400 hover:text-slate-600">
+                    &times;
+                  </button>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-slate-900">{selectedTx.voucher?.title || "Voucher Promo"}</p>
+                  <p className="text-sm text-slate-500">{selectedTx.voucher?.restaurant?.name}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {new Date(selectedTx.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border">
+                  <span className="text-sm text-slate-500">Total Pembayaran</span>
+                  <span className="font-bold text-slate-900">Rp {selectedTx.totalPaid.toLocaleString('id-ID')}</span>
+                </div>
+
+                {selectedTx.status === "PENDING" && selectedTx.paymentUrl && (
+                  <div className="flex flex-col items-center gap-3 rounded-xl bg-slate-50 p-4 border border-slate-200 mt-2">
+                    {(new Date().getTime() - new Date(selectedTx.createdAt).getTime() > 15 * 60 * 1000) ? (
+                      <>
+                        <p className="text-xs font-semibold uppercase text-red-500">QR Kadaluarsa</p>
+                        <div className="flex h-32 w-32 items-center justify-center rounded bg-slate-100 text-sm text-slate-400">
+                          Expired
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs font-semibold uppercase text-slate-500 text-center">Scan QRIS untuk Bayar</p>
+                        <div className="rounded-lg bg-white p-2 shadow-sm">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(selectedTx.paymentUrl)}`} 
+                            alt="QRIS Code" 
+                            className="h-32 w-32 object-contain"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                
+                {selectedTx.status === "PAID" && selectedTx.uniqueCode && (
+                  <div className="flex flex-col items-center justify-center gap-2 rounded-xl bg-emerald-50 p-6 border border-emerald-100 mt-2">
+                    <p className="text-xs font-semibold uppercase text-emerald-600">Kode Unik Penukaran</p>
+                    <p className="text-3xl font-black tracking-widest text-emerald-700">{selectedTx.uniqueCode}</p>
+                    <p className="text-[10px] text-emerald-600/70 text-center mt-2">Tunjukkan kode ini kepada kasir restoran untuk menukarkan voucher Anda.</p>
+                  </div>
+                )}
+
+                <Button className="mt-2 w-full" onClick={() => setSelectedTx(null)}>
+                  Tutup
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </div>

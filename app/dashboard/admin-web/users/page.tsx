@@ -5,7 +5,7 @@ import { Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type User = {
@@ -21,6 +21,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -84,7 +85,6 @@ export default function Page() {
   async function handleDelete(id: string) {
     const userObj = users.find((u) => u.id === id);
     const name = userObj ? userObj.name : "User";
-    if (!confirm(`Apakah Anda yakin ingin menghapus user "${name}" secara permanen?`)) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const res = await fetch(`${baseUrl}/api/admin/users/${id}`, {
@@ -96,10 +96,12 @@ export default function Page() {
         toast.error(data.message || `Gagal menghapus user ${name}`);
         return;
       }
-      toast.success(`User "${name}" berhasil dihapus secara permanen`);
+      toast.success(`User "${name}" berhasil dihapus`);
       setUsers((cur) => cur.filter((u) => u.id !== id));
     } catch (err) {
       toast.error("Terjadi kesalahan jaringan");
+    } finally {
+      setDeleteConfirmUser(null);
     }
   }
 
@@ -152,7 +154,7 @@ export default function Page() {
                             <Button size="sm" variant={isBanned ? "secondary" : "outline"} onClick={() => toggleBan(u.id)}>
                               {isBanned ? "Unban" : "Ban"}
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDelete(u.id)}>
+                            <Button size="sm" variant="destructive" onClick={() => setDeleteConfirmUser(u)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -209,6 +211,32 @@ export default function Page() {
                   Tutup
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-sm border border-border bg-background/95 shadow-2xl animate-in zoom-in-95 duration-200">
+            <CardHeader className="pb-4 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <CardTitle className="text-xl">Hapus User?</CardTitle>
+              <CardDescription className="text-center mt-2">
+                Apakah Anda yakin ingin menghapus user <span className="font-bold text-foreground">{deleteConfirmUser.name}</span>?
+                (Data riwayat pesanan akan tetap tersimpan aman).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-3 justify-center">
+              <Button variant="outline" className="flex-1" onClick={() => setDeleteConfirmUser(null)}>
+                Batal
+              </Button>
+              <Button variant="destructive" className="flex-1" onClick={() => handleDelete(deleteConfirmUser.id)}>
+                Hapus
+              </Button>
             </CardContent>
           </Card>
         </div>
