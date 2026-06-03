@@ -151,12 +151,6 @@ export default async function Page() {
                 gunakan saat order atau saat check-in ke resto.
               </p>
             </div>
-            <Link
-              href="/restaurants"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              Lihat restoran yang aktif promo
-            </Link>
           </div>
         </div>
       </section>

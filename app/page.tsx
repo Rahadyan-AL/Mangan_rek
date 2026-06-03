@@ -61,7 +61,7 @@ export default async function Home({ searchParams }: PageProps) {
             </p>
           </div>
           <Link href="/restaurants" className="text-sm text-primary hover:underline">
-            Lihat Semua →
+            Lihat Semua Restoran →
           </Link>
         </div>
 
