@@ -40,7 +40,7 @@ type CartItem = {
 type VoucherState = {
   code: string;
   applied: boolean;
-  discountPercent: number;
+  discountValue: number;
   isLoading: boolean;
   error: string | null;
 };
@@ -64,7 +64,7 @@ export default function Page() {
   const [voucher, setVoucher] = useState<VoucherState>({
     code: "",
     applied: false,
-    discountPercent: 0,
+    discountValue: 0,
     isLoading: false,
     error: null,
   });
@@ -120,7 +120,7 @@ export default function Page() {
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = voucher.applied
-    ? Math.round(subtotal * (voucher.discountPercent / 100))
+    ? Math.min(voucher.discountValue, subtotal)
     : 0;
   const total = subtotal - discountAmount;
 
@@ -169,16 +169,16 @@ export default function Page() {
       });
       const data = await res.json();
       if (res.ok) {
-        const discountPercent =
-          data.data?.discountPercentage ??
-          data.data?.discount ??
-          data.discountPercentage ??
-          data.discount ??
-          10;
+        const discountValue =
+          data.data?.value ??
+          data.value ??
+          data.data?.discountAmount ??
+          data.discountAmount ??
+          0;
         setVoucher((v) => ({
           ...v,
           applied: true,
-          discountPercent: Number(discountPercent),
+          discountValue: Number(discountValue),
           isLoading: false,
           error: null,
         }));
@@ -186,7 +186,7 @@ export default function Page() {
         setVoucher((v) => ({
           ...v,
           applied: false,
-          discountPercent: 0,
+          discountValue: 0,
           isLoading: false,
           error: data.message || "Voucher tidak valid",
         }));
@@ -195,7 +195,7 @@ export default function Page() {
       setVoucher((v) => ({
         ...v,
         applied: false,
-        discountPercent: 0,
+        discountValue: 0,
         isLoading: false,
         error: "Gagal memvalidasi voucher",
       }));
@@ -470,7 +470,7 @@ export default function Page() {
               </div>
               {voucher.applied && (
                 <p className="mt-1 text-xs text-green-600">
-                  ✓ Voucher diterapkan ({voucher.discountPercent}% diskon)
+                  ✓ Voucher diterapkan (Potongan {formatRupiah(voucher.discountValue)})
                 </p>
               )}
               {voucher.error && (
@@ -486,7 +486,7 @@ export default function Page() {
               </div>
               {voucher.applied && (
                 <div className="flex items-center justify-between text-[#a65a2e]">
-                  <span>Diskon ({voucher.discountPercent}%)</span>
+                  <span>Diskon Voucher</span>
                   <span>- {formatRupiah(discountAmount)}</span>
                 </div>
               )}

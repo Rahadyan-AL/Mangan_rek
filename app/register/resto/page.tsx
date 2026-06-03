@@ -1,9 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, MapPin } from "lucide-react";
+
+const MapPicker = dynamic(() => import("./map-picker"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[280px] w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-400">
+      Memuat peta...
+    </div>
+  ),
+});
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -189,11 +199,28 @@ export default function Page() {
                 />
               </div>
 
+              {/* Map Picker */}
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 text-[#00458B]" />
+                  Pilih Lokasi di Peta
+                </Label>
+                <MapPicker
+                  latitude={latitude ? parseFloat(latitude) : null}
+                  longitude={longitude ? parseFloat(longitude) : null}
+                  onLocationSelect={(lat, lng) => {
+                    setLatitude(lat.toFixed(6));
+                    setLongitude(lng.toFixed(6));
+                  }}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="latitude">Latitude</Label>
                 <Input
                   id="latitude"
                   type="number"
+                  step="any"
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
                   placeholder="-7.942134"
@@ -206,6 +233,7 @@ export default function Page() {
                 <Input
                   id="longitude"
                   type="number"
+                  step="any"
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
                   placeholder="112.620345"
