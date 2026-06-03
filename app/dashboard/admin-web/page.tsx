@@ -25,6 +25,7 @@ export default function Page() {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalOwners, setTotalOwners] = useState<number>(0);
   const [approvals, setApprovals] = useState<any[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchDashboardData = useCallback(async () => {
@@ -33,10 +34,11 @@ export default function Page() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const options = { credentials: "include" as RequestCredentials };
 
-      const [usersRes, ownersRes, approvalsRes] = await Promise.all([
+      const [usersRes, ownersRes, approvalsRes, revenueRes] = await Promise.all([
         fetch(`${baseUrl}/api/admin/users`, options).catch(() => null),
         fetch(`${baseUrl}/api/admin/owners`, options).catch(() => null),
         fetch(`${baseUrl}/api/admin/approvals`, options).catch(() => null),
+        fetch(`${baseUrl}/api/admin/revenue`, options).catch(() => null),
       ]);
 
       if (usersRes?.ok) {
@@ -70,6 +72,11 @@ export default function Page() {
         else if (approvalsData.data && Array.isArray(approvalsData.data.data)) approvalsArray = approvalsData.data.data;
         else if (approvalsData.data && Array.isArray(approvalsData.data.approvals)) approvalsArray = approvalsData.data.approvals;
         setApprovals(approvalsArray);
+      }
+
+      if (revenueRes?.ok) {
+        const revenueData = await revenueRes.json();
+        setTotalRevenue(revenueData?.data?.totalPlatformFee || 0);
       }
     } catch (err) {
       console.error(err);
@@ -106,9 +113,9 @@ export default function Page() {
     },
     {
       label: "Total Revenue",
-      value: "Rp 1.2M",
-      trend: "+9%",
-      tone: "bg-emerald-10 text-emerald-700",
+      value: isLoading ? "..." : `Rp ${totalRevenue.toLocaleString("id-ID")}`,
+      trend: "+0%",
+      tone: "bg-emerald-100 text-emerald-700",
       icon: Store,
     },
   ];

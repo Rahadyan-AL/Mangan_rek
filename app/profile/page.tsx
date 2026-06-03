@@ -210,7 +210,11 @@ export default function Page() {
       const profile = data.data ?? data.user ?? {};
       setName(profile.name ?? name);
       setEmail(profile.email ?? email);
-      setMessage(data.message ?? "Profil berhasil diperbarui.");
+      setMessage("Profil berhasil diperbarui. Silakan login kembali.");
+      
+      setTimeout(() => {
+        handleLogout();
+      }, 2000);
     } catch {
       setError("Terjadi kesalahan saat menyimpan profil.");
     } finally {
@@ -249,9 +253,13 @@ export default function Page() {
         return;
       }
 
-      setPasswordMessage(data.message ?? "Password berhasil diganti.");
+      setPasswordMessage("Password berhasil diganti. Silakan login kembali.");
       setOldPassword("");
       setNewPassword("");
+
+      setTimeout(() => {
+        handleLogout();
+      }, 2000);
     } catch {
       setPasswordError("Terjadi kesalahan saat mengganti password.");
     } finally {
@@ -497,10 +505,11 @@ export default function Page() {
                             <div className="flex items-center gap-3 mt-2">
                               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                                 tx.status === "PAID" ? "bg-green-100 text-green-700" :
+                                (tx.status === "PENDING" && (new Date().getTime() - new Date(tx.createdAt).getTime() > 15 * 60 * 1000)) ? "bg-red-100 text-red-700" :
                                 tx.status === "PENDING" ? "bg-amber-100 text-amber-700" :
                                 "bg-slate-100 text-slate-700"
                               }`}>
-                                {tx.status}
+                                {tx.status === "PENDING" && (new Date().getTime() - new Date(tx.createdAt).getTime() > 15 * 60 * 1000) ? "EXPIRED" : tx.status}
                               </span>
                               <span className="text-xs font-medium text-slate-700">Rp {tx.totalPaid.toLocaleString('id-ID')}</span>
                             </div>
@@ -512,15 +521,26 @@ export default function Page() {
 
                         {tx.status === "PENDING" && tx.paymentUrl && (
                           <div className="flex flex-col items-center gap-2 rounded-lg bg-slate-50 p-3 border border-slate-100 shrink-0">
-                            <p className="text-[10px] font-semibold uppercase text-slate-500">Scan QRIS untuk Bayar</p>
-                            <div className="rounded bg-white p-1 shadow-sm">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img 
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(tx.paymentUrl)}`} 
-                                alt="QRIS Code" 
-                                className="h-20 w-20 object-contain"
-                              />
-                            </div>
+                            {(new Date().getTime() - new Date(tx.createdAt).getTime() > 15 * 60 * 1000) ? (
+                              <>
+                                <p className="text-[10px] font-semibold uppercase text-red-500">QR Kadaluarsa</p>
+                                <div className="flex h-20 w-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">
+                                  Expired
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-[10px] font-semibold uppercase text-slate-500">Scan QRIS untuk Bayar</p>
+                                <div className="rounded bg-white p-1 shadow-sm">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(tx.paymentUrl)}`} 
+                                    alt="QRIS Code" 
+                                    className="h-20 w-20 object-contain"
+                                  />
+                                </div>
+                              </>
+                            )}
                           </div>
                         )}
                         

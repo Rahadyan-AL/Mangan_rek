@@ -60,12 +60,12 @@ export default function Page() {
   async function toggleBan(id: string) {
     const ownerObj = owners.find((o) => o.id === id);
     const name = ownerObj ? ownerObj.name : "Owner";
-    const currentIsBanned = ownerObj?.status?.toUpperCase() === "BANNED";
+    const currentIsBanned = ownerObj?.status?.toUpperCase() === "REJECTED";
     const actionText = currentIsBanned ? "unban" : "ban";
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const res = await fetch(`${baseUrl}/api/admin/owners/${id}/ban`, {
+      const res = await fetch(`${baseUrl}/api/admin/users/${id}/ban`, {
         method: "PATCH",
         credentials: "include",
       });
@@ -75,8 +75,8 @@ export default function Page() {
         return;
       }
       
-      const newStatus = currentIsBanned ? "ACTIVE" : "BANNED";
-      toast.success(`Berhasil mengubah status ${name} menjadi ${newStatus === "BANNED" ? "Banned" : "Aktif"}`);
+      const newStatus = currentIsBanned ? "ACTIVE" : "REJECTED";
+      toast.success(`Berhasil mengubah status ${name} menjadi ${newStatus === "REJECTED" ? "Banned" : "Aktif"}`);
       fetchOwners();
     } catch (err) {
       toast.error(`Terjadi kesalahan jaringan saat melakukan ${actionText}`);
@@ -89,7 +89,7 @@ export default function Page() {
     if (!confirm(`Apakah Anda yakin ingin menghapus owner "${name}" secara permanen?`)) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const res = await fetch(`${baseUrl}/api/admin/owners/${id}`, {
+      const res = await fetch(`${baseUrl}/api/admin/users/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -136,7 +136,7 @@ export default function Page() {
                 </TableHeader>
                 <TableBody>
                   {owners.map((o) => {
-                    const isBanned = o.status?.toUpperCase() === "BANNED";
+                    const isBanned = o.status?.toUpperCase() === "REJECTED";
                     return (
                       <TableRow key={o.id} className="border-border/40">
                         <TableCell className="py-4 pr-4 font-medium">{o.name}</TableCell>
@@ -203,8 +203,8 @@ export default function Page() {
               <div className="space-y-1 rounded-lg border border-border/50 bg-muted/30 p-3">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</p>
                 <div>
-                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${selectedOwner.status?.toUpperCase() === "BANNED" ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                    {selectedOwner.status?.toUpperCase() === "BANNED" ? "BANNED" : "ACTIVE"}
+                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${selectedOwner.status?.toUpperCase() === "REJECTED" ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                    {selectedOwner.status?.toUpperCase() === "REJECTED" ? "BANNED" : "ACTIVE"}
                   </span>
                 </div>
               </div>

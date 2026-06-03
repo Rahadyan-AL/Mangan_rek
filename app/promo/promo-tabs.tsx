@@ -214,9 +214,15 @@ export function PromoTabs({
                           {promo.restaurant.name}
                         </CardDescription>
                       </div>
-                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        Aktif
-                      </span>
+                      {promo.isActive ? (
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          Aktif
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          Tidak Aktif
+                        </span>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4 p-5">
@@ -360,29 +366,9 @@ export function PromoTabs({
                     </div>
                   </div>
 
-                  {/* Buy feedback message */}
-                  {buyResult && buyResult.id === voucher.id && (
-                    <div className={`mx-2 rounded-lg border px-3 py-3 text-xs font-semibold flex flex-col gap-3 ${
-                      buyResult.success
-                        ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
-                        : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-                    }`}>
+                  {buyResult && buyResult.id === voucher.id && !buyResult.success && (
+                    <div className="mx-2 rounded-lg border px-3 py-3 text-xs font-semibold flex flex-col gap-3 border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
                       <p className="text-center">{buyResult.message}</p>
-                      
-                      {buyResult.success && buyResult.paymentUrl && (
-                        <div className="flex flex-col items-center gap-2 mt-2">
-                          <p className="text-center text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Silakan scan QRIS berikut</p>
-                          <div className="rounded-lg bg-white p-2 shadow-sm border border-border/50">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img 
-                              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(buyResult.paymentUrl)}`} 
-                              alt="QRIS Code" 
-                              className="h-32 w-32 object-contain"
-                            />
-                          </div>
-                          <p className="text-[10px] text-center font-normal">Setelah scan, cek menu profil Anda secara berkala untuk melihat histori pembelian voucher Anda.</p>
-                        </div>
-                      )}
                     </div>
                   )}
 
@@ -422,6 +408,57 @@ export function PromoTabs({
               ))}
             </div>
           )}
+        </div>
+      )}
+      {/* QR Payment Modal */}
+      {buyResult && buyResult.success && buyResult.paymentUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setBuyResult(null)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl flex flex-col items-center gap-4 text-slate-900">
+            <div className="flex items-center gap-2 text-green-600 mb-2">
+              <ShoppingCart className="h-5 w-5" />
+              <h3 className="text-lg font-bold">Voucher Berhasil Dipesan!</h3>
+            </div>
+            
+            <p className="text-center text-sm text-slate-500">
+              Silakan scan QRIS di bawah ini dengan aplikasi M-Banking atau e-Wallet Anda untuk menyelesaikan pembayaran.
+            </p>
+            
+            <div className="rounded-xl border-2 border-primary/20 p-4 shadow-sm bg-slate-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(buyResult.paymentUrl)}`} 
+                alt="QRIS Code" 
+                width={200}
+                height={200}
+                className="rounded-md mx-auto"
+              />
+            </div>
+            
+            <p className="text-xs text-center text-slate-500 max-w-[250px] mx-auto mt-2">
+              Status pembayaran akan diperbarui otomatis di menu <span className="font-semibold text-slate-700">Profil &gt; Histori Pembelian</span>.
+            </p>
+            
+            <Button
+              className="mt-4 w-full bg-[#00458B] text-white hover:bg-[#003a76] font-semibold"
+              onClick={() => {
+                setBuyResult(null);
+                router.push("/profile");
+              }}
+            >
+              Cek Histori Saya
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full text-slate-500 hover:text-slate-700"
+              onClick={() => setBuyResult(null)}
+            >
+              Tutup
+            </Button>
+          </div>
         </div>
       )}
     </>

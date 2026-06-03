@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ShoppingBag, MapPin, Store, Heart } from "lucide-react";
+import { ArrowLeft, MapPin, Store, Heart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TypingLoader } from "@/components/typing-loader";
@@ -59,6 +59,7 @@ export default function Page() {
 
   useEffect(() => {
     if (activeMenu?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsFavoriteMenu(isFavoriteRestaurant(activeMenu.id));
     }
   }, [activeMenu?.id]);
@@ -142,14 +143,6 @@ export default function Page() {
                         <Badge variant="destructive" className="shadow-none rounded-full px-3">Habis</Badge>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleToggleFavoriteMenu}
-                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500 shadow-sm transition-transform hover:scale-110 active:scale-95"
-                      title="Tambah ke Favorit"
-                    >
-                      <Heart className={isFavoriteMenu ? "fill-red-500" : ""} size={22} />
-                    </button>
                   </div>
                   <div className="flex items-start gap-1.5 text-sm text-muted-foreground pb-2">
                     <MapPin className="h-4 w-4 shrink-0 mt-0.5" />

@@ -67,8 +67,7 @@ async function getPromos(): Promise<Promo[]> {
     if (!res.ok) return [];
     const json = await res.json().catch(() => null);
     const allPromos: Promo[] = json?.data?.promos ?? [];
-    // Only show active promos
-    return allPromos.filter((p) => p.isActive);
+    return allPromos;
   } catch {
     return [];
   }

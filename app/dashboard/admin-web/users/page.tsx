@@ -58,7 +58,7 @@ export default function Page() {
   async function toggleBan(id: string) {
     const userObj = users.find((u) => u.id === id);
     const name = userObj ? userObj.name : "User";
-    const currentIsBanned = userObj?.status?.toUpperCase() === "BANNED";
+    const currentIsBanned = userObj?.status?.toUpperCase() === "REJECTED";
     const actionText = currentIsBanned ? "unban" : "ban";
 
     try {
@@ -73,8 +73,8 @@ export default function Page() {
         return;
       }
 
-      const newStatus = currentIsBanned ? "ACTIVE" : "BANNED";
-      toast.success(`Berhasil mengubah status ${name} menjadi ${newStatus === "BANNED" ? "Banned" : "Aktif"}`);
+      const newStatus = currentIsBanned ? "ACTIVE" : "REJECTED";
+      toast.success(`Berhasil mengubah status ${name} menjadi ${newStatus === "REJECTED" ? "Banned" : "Aktif"}`);
       fetchUsers();
     } catch (err) {
       toast.error(`Terjadi kesalahan jaringan saat melakukan ${actionText}`);
@@ -134,7 +134,7 @@ export default function Page() {
                 </TableHeader>
                 <TableBody>
                   {users.map((u) => {
-                    const isBanned = u.status?.toUpperCase() === "BANNED";
+                    const isBanned = u.status?.toUpperCase() === "REJECTED";
                     return (
                       <TableRow key={u.id} className="border-border/40">
                         <TableCell className="py-4 pr-4 font-medium">{u.name}</TableCell>
@@ -199,8 +199,8 @@ export default function Page() {
               <div className="space-y-1 rounded-lg border border-border/50 bg-muted/30 p-3">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</p>
                 <div>
-                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${selectedUser.status?.toUpperCase() === "BANNED" ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                    {selectedUser.status?.toUpperCase() === "BANNED" ? "BANNED" : "ACTIVE"}
+                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${selectedUser.status?.toUpperCase() === "REJECTED" ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                    {selectedUser.status?.toUpperCase() === "REJECTED" ? "BANNED" : "ACTIVE"}
                   </span>
                 </div>
               </div>

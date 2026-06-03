@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, Search, Utensils } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,12 +57,13 @@ export default function Page() {
       });
       if (res.ok) {
         setMenuItems((cur) => cur.filter((m) => m.id !== id));
+        toast.success("Menu berhasil dihapus");
       } else {
         const data = await res.json();
-        alert(data.message || "Gagal menghapus menu");
+        toast.error(data.message || "Gagal menghapus menu");
       }
     } catch (err) {
-      alert("Terjadi kesalahan jaringan saat menghapus menu");
+      toast.error("Terjadi kesalahan jaringan saat menghapus menu");
     }
   }
 

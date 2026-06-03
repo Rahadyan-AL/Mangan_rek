@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,8 +16,12 @@ export default function EditMenuPage() {
   const params = useParams();
   const id = params.id as string;
 
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [isAvailable, setIsAvailable] = useState("true");
+  const [image, setImage] = useState<File | null>(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +39,8 @@ export default function EditMenuPage() {
           const menuList = Array.isArray(items) ? items : [];
           const found = menuList.find((m: any) => m.id === id);
           if (found) {
+            setName(found.name || "");
+            setDescription(found.description || "");
             setPrice(found.price?.toString() || "");
             setIsAvailable(found.isAvailable === false ? "false" : "true");
           } else {
@@ -54,26 +61,27 @@ export default function EditMenuPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!price) {
-      setError("Harga wajib diisi.");
+    if (!name || !price) {
+      setError("Nama dan harga wajib diisi.");
       return;
     }
     
     setIsSaving(true);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const payload = {
-        price: Number(price),
-        isAvailable: isAvailable === "true",
-      };
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("price", price);
+      formData.append("isAvailable", isAvailable);
+      if (image) {
+        formData.append("image", image);
+      }
 
       const res = await fetch(`${baseUrl}/api/restaurants/menus/${id}`, {
         method: "PUT",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       if (!res.ok) {
@@ -81,8 +89,10 @@ export default function EditMenuPage() {
         throw new Error(data.message || "Gagal memperbarui menu");
       }
       
+      toast.success("Berhasil memperbarui menu");
       router.push("/dashboard/admin-resto/menu");
     } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan jaringan");
       setError(err.message || "Terjadi kesalahan jaringan");
     } finally {
       setIsSaving(false);
@@ -105,32 +115,62 @@ export default function EditMenuPage() {
         <Card className="border border-border">
           <CardHeader>
             <CardTitle className="text-2xl">Edit Menu</CardTitle>
-            <CardDescription>Perbarui harga dan status ketersediaan menu Anda.</CardDescription>
+            <CardDescription>Perbarui detail menu Anda.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Harga Baru (Rp)</Label>
+                <Label htmlFor="name">Nama Menu</Label>
                 <Input
-                  id="price"
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="25000"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Misal: Nasi Goreng Spesial"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="isAvailable">Status Ketersediaan</Label>
-                <select
-                  id="isAvailable"
-                  value={isAvailable}
-                  onChange={(e) => setIsAvailable(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="true">Tersedia</option>
-                  <option value="false">Habis (Sold Out)</option>
-                </select>
+                <Label htmlFor="description">Deskripsi</Label>
+                <Input
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Deskripsi singkat tentang menu"
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="price">Harga Baru (Rp)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="25000"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="isAvailable">Status Ketersediaan</Label>
+                  <select
+                    id="isAvailable"
+                    value={isAvailable}
+                    onChange={(e) => setIsAvailable(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="true">Tersedia</option>
+                    <option value="false">Habis (Sold Out)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image">Ubah Foto Menu (Opsional)</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+                />
               </div>
               
               {error ? (

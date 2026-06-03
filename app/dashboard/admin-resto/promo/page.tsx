@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Plus, Trash2, Tag, Clock, CheckSquare, Square, Percent, AlertCircle, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,10 +75,10 @@ export default function PromoPage() {
   const handleStartEdit = (promo: any) => {
     setEditingPromoId(promo.id);
     setPromoType(promo.type);
-    setDiscount(promo.discount.toString());
+    setDiscount(promo.discount?.toString() || "");
     setStartHour(promo.startHour);
     setEndHour(promo.endHour);
-    setSelectedMenuIds(promo.menuIds || []);
+    setSelectedMenuIds(promo.menus ? promo.menus.map((m: any) => m.id) : []);
   };
 
   const handleCancelEdit = () => {
@@ -142,8 +143,9 @@ export default function PromoPage() {
       // Clear Form & Reload
       handleCancelEdit();
       fetchPromosAndMenus();
-      alert(editingPromoId ? "Promo berhasil diperbarui!" : "Promo berhasil ditambahkan!");
+      toast.success(editingPromoId ? "Promo berhasil diperbarui!" : "Promo berhasil ditambahkan!");
     } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan jaringan.");
       setError(err.message || "Terjadi kesalahan jaringan.");
     } finally {
       setIsSubmitting(false);
@@ -161,22 +163,20 @@ export default function PromoPage() {
 
       if (res.ok) {
         setPromos((cur) => cur.filter((p) => p.id !== id));
-        alert("Promo berhasil dihapus!");
+        toast.success("Promo berhasil dihapus!");
       } else {
         const data = await res.json();
-        alert(data.message || "Gagal menghapus promo.");
+        toast.error(data.message || "Gagal menghapus promo.");
       }
     } catch (err) {
-      alert("Terjadi kesalahan jaringan.");
+      toast.error("Terjadi kesalahan jaringan.");
     }
   }
 
   // Helper to map menu names for specific promos
-  function getMenuNames(menuIds: string[]) {
-    if (!menuIds || !Array.isArray(menuIds)) return "-";
-    const names = menuIds
-      .map((id) => menus.find((m) => m.id === id)?.name || `Menu ID: ${id}`)
-      .join(", ");
+  function getMenuNames(menusArr: any[]) {
+    if (!menusArr || !Array.isArray(menusArr)) return "-";
+    const names = menusArr.map((m: any) => m.name).join(", ");
     return names || "Tidak ada menu yang terdaftar";
   }
 
@@ -245,7 +245,7 @@ export default function PromoPage() {
                       {promo.type === "SPECIFIC" && (
                         <p className="text-xs text-muted-foreground">
                           <span className="font-semibold text-foreground">Target Menu: </span>
-                          {getMenuNames(promo.menuIds)}
+                          {getMenuNames(promo.menus)}
                         </p>
                       )}
                     </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -51,8 +52,10 @@ export default function NewMenuPage() {
         throw new Error(data.message || "Gagal menambahkan menu");
       }
       
+      toast.success("Berhasil menambahkan menu");
       router.push("/dashboard/admin-resto/menu");
     } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan jaringan");
       setError(err.message || "Terjadi kesalahan jaringan");
     } finally {
       setIsLoading(false);

@@ -338,7 +338,7 @@ export default function KasirHistoryPage() {
                   }
                   return (
                     <div className="flex h-[200px] w-[200px] items-center justify-center rounded-md bg-slate-50 text-center text-sm text-slate-400">
-                      QR tidak tersedia
+                      Expired
                     </div>
                   );
                 })()}

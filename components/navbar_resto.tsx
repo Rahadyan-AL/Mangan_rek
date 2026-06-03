@@ -23,6 +23,7 @@ const adminRestoRoutes = [
   { href: "/dashboard/admin-resto/manajemen-kasir", label: "Manajemen Kasir" },
   { href: "/dashboard/admin-resto/report", label: "Laporan Penjualan" },
   { href: "/dashboard/admin-resto/history", label: "Riwayat Transaksi" },
+  { href: "/dashboard/admin-resto/profile", label: "Profil Restoran" },
   { href: "/logout", label: "Logout" },
 ];
 

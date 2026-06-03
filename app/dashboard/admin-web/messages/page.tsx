@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Mail, MailOpen } from "lucide-react";
+import { Trash2, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 type Message = {
     id: string;
@@ -25,21 +26,17 @@ export default function MessagesPage() {
     const fetchMessages = async () => {
         try {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-            // Get token from cookie (assuming it's stored in 'mangan_rek_session')
-            const tokenMatch = document.cookie.split("; ").find(c => c.startsWith("mangan_rek_session="));
-            const token = tokenMatch ? decodeURIComponent(tokenMatch.split("=")[1]) : "";
-
             const response = await fetch(`${baseUrl}/api/contact`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                credentials: "include"
             });
             const result = await response.json();
-            if (result.success) {
-                setMessages(result.data);
+            if (result.success || Array.isArray(result.data) || Array.isArray(result)) {
+                setMessages(result.data || result);
+            } else {
+                toast.error("Gagal memuat pesan");
             }
         } catch (error) {
-            console.error("Failed to fetch messages:", error);
+            toast.error("Terjadi kesalahan jaringan saat memuat pesan");
         } finally {
             setIsLoading(false);
         }
@@ -49,21 +46,19 @@ export default function MessagesPage() {
         if (!confirm("Apakah Anda yakin ingin menghapus pesan ini?")) return;
         try {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-            const tokenMatch = document.cookie.split("; ").find(c => c.startsWith("mangan_rek_session="));
-            const token = tokenMatch ? decodeURIComponent(tokenMatch.split("=")[1]) : "";
-
             const response = await fetch(`${baseUrl}/api/contact/${id}`, {
                 method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                credentials: "include"
             });
             const result = await response.json();
-            if (result.success) {
+            if (response.ok || result.success) {
                 setMessages(messages.filter(msg => msg.id !== id));
+                toast.success("Pesan berhasil dihapus");
+            } else {
+                toast.error(result.message || "Gagal menghapus pesan");
             }
         } catch (error) {
-            console.error("Failed to delete message:", error);
+            toast.error("Terjadi kesalahan jaringan saat menghapus pesan");
         }
     };
 

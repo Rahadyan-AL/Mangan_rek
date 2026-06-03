@@ -25,8 +25,32 @@ export default function HistoryPage() {
       }
 
       const data = await res.json();
-      const items = data.data || data.orders || data.history || data;
-      setHistoryItems(Array.isArray(items) ? items : []);
+      const resultData = data.data || {};
+      const orders = Array.isArray(resultData.orders) ? resultData.orders : [];
+      const vouchers = Array.isArray(resultData.vouchers) ? resultData.vouchers : [];
+
+      const combined = [
+        ...orders.map((o: any) => ({
+          id: o.id,
+          createdAt: o.createdAt,
+          totalAmount: o.finalAmount || o.totalAmount,
+          status: o.status,
+          itemsCount: o.items ? o.items.length : 0,
+          type: 'ORDER',
+        })),
+        ...vouchers.map((v: any) => ({
+          id: v.id,
+          createdAt: v.createdAt,
+          totalAmount: v.totalPaid,
+          status: v.status,
+          itemsCount: 1,
+          type: 'VOUCHER',
+        }))
+      ];
+
+      combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      setHistoryItems(combined);
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan koneksi.");
     } finally {
@@ -142,6 +166,8 @@ export default function HistoryPage() {
                           <Clock className="h-3.5 w-3.5" />
                           {formatDate(timeStr)}
                         </span>
+                        <span>•</span>
+                        <span className="font-semibold text-primary">{item.type}</span>
                         <span>•</span>
                         <span>{itemsCount} Item</span>
                       </div>
